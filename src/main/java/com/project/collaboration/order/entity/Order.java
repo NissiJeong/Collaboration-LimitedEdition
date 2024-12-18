@@ -6,6 +6,7 @@ import com.project.collaboration.user.entity.User;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "Orders")
 public class Order extends Timestamped {
 
     @Id
