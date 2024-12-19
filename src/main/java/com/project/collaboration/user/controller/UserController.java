@@ -21,6 +21,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<?> signUp(@Valid @RequestBody UserDto requestDto) {
+        System.out.println("requestDto.getEmail() = " + requestDto.getEmail());
         UserDto user = userService.signUp(requestDto);
         return ResponseEntity.ok(user);
     }
