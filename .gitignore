@@ -18,6 +18,10 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
+application.yml
+docker-compose.db.yml
+docker-compose.app.yml
+
 .idea
 *.iws
 *.iml
