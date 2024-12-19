@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: collaboration
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - ./mysql/conf.d:/etc/mysql/conf.d # MySQL 설정 파일 위치
     command:
