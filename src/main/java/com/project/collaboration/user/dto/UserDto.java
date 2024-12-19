@@ -20,12 +20,15 @@ public class UserDto {
     @NotBlank
     private String address;
 
+    private String verifyCode;
+
     public UserDto(Builder builder) {
         this.userName = builder.userName;
         this.password = builder.password;
         this.email = builder.email;
         this.mobileNumber = builder.mobileNumber;
         this.address = builder.address;
+        this.verifyCode = builder.verifyCode;
     }
 
     public static class Builder {
@@ -34,6 +37,7 @@ public class UserDto {
         private String email;
         private String mobileNumber;;
         private String address;
+        private String verifyCode;
 
         public Builder userName(String userName) {
             this.userName = userName;
@@ -53,6 +57,10 @@ public class UserDto {
         }
         public Builder address(String address) {
             this.address = address;
+            return this;
+        }
+        public Builder verifyCode(String verifyCode) {
+            this.verifyCode = verifyCode;
             return this;
         }
 
