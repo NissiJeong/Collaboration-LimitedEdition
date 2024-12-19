@@ -5,6 +5,7 @@ import com.project.collaboration.jwt.JwtUtil;
 import com.project.collaboration.security.JwtAuthenticationFilter;
 import com.project.collaboration.security.JwtAuthorizationFilter;
 import com.project.collaboration.security.UserDetailsServiceImpl;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,6 +27,9 @@ public class WebSecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
+
+    @Value("${aes.secret.key}")
+    private String aesSecretKey;
 
     public WebSecurityConfig(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, AuthenticationConfiguration authenticationConfiguration) {
         this.jwtUtil = jwtUtil;
@@ -38,13 +43,18 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    public AesBytesEncryptor aesBytesEncryptor() {
+        return new AesBytesEncryptor(aesSecretKey, "70726574657374");
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, aesBytesEncryptor());
         filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
         return filter;
     }
