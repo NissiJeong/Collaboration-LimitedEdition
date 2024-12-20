@@ -1,8 +1,12 @@
 package com.project.collaboration.product.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
 @Entity
+@NoArgsConstructor
 public class Product {
 
     @Id
@@ -16,4 +20,17 @@ public class Product {
     private int stock;
 
     private String imageUrl;
+
+    private int version;
+
+    public Product(String productName, int stock, String imageUrl, int version) {
+        this.productName = productName;
+        this.stock = stock;
+        this.imageUrl = imageUrl;
+        this.version = version;
+    }
+
+    public void increaseVersion(int version) {
+        this.version = version;
+    }
 }
