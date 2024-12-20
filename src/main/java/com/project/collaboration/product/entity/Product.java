@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @NoArgsConstructor
@@ -22,6 +25,9 @@ public class Product {
     private String imageUrl;
 
     private int version;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductDetail> productDetailList = new ArrayList<>();
 
     public Product(String productName, int stock, String imageUrl, int version) {
         this.productName = productName;
