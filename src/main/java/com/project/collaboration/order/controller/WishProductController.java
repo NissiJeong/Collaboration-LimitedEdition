@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/api/wish/product")
 @RequiredArgsConstructor
@@ -23,5 +25,21 @@ public class WishProductController {
         return ResponseEntity.ok(responseDto);
     }
 
-    //@GetMapping(value = "")
+    @GetMapping
+    public ResponseEntity<?> getWishProductList(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        List<WishProductDto> responseDtoList = wishProductService.getWishProductList(userDetails);
+        return ResponseEntity.ok(responseDtoList);
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updateWishProduct(@RequestBody WishProductDto requestDto) {
+        WishProductDto responseDto = wishProductService.updateWishProduct(requestDto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteWishProduct(@RequestBody WishProductDto requestDto) {
+        boolean isDelete = wishProductService.deleteWishProduct(requestDto);
+        return ResponseEntity.ok(isDelete);
+    }
 }

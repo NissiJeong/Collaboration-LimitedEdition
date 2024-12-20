@@ -34,4 +34,8 @@ public class WishProduct extends Timestamped {
         this.product = product;
         this.user = user;
     }
+
+    public void changeWishProduct(int wishQuantity) {
+        this.wishQuantity = wishQuantity;
+    }
 }

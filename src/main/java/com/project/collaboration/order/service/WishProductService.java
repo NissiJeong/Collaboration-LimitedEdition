@@ -3,11 +3,14 @@ package com.project.collaboration.order.service;
 import com.project.collaboration.order.dto.WishProductDto;
 import com.project.collaboration.order.entity.WishProduct;
 import com.project.collaboration.order.repository.WishProductRepository;
+import com.project.collaboration.product.dto.ProductDto;
 import com.project.collaboration.product.entity.Product;
 import com.project.collaboration.product.repository.ProductRepository;
 import com.project.collaboration.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,14 +24,60 @@ public class WishProductService {
                 new NullPointerException("해당 상품이 존재하지 않습니다.")
         );
 
-        //wishProductRepository.findByProductAnd
+        WishProduct existWishProduct = wishProductRepository.findByProductAndUser(product, userDetails.getUser());
+        if(existWishProduct != null) {
+            throw new IllegalArgumentException("해당 상품은 이미 관심상품에 등록되어 있습니다.");
+        }
 
         // 상품이 존재하면 wish list 저장
         WishProduct wishProduct = new WishProduct(requestDto, product, userDetails.getUser());
         WishProduct savedWishProduct = wishProductRepository.save(wishProduct);
 
-        return new WishProductDto().builder()
+        return WishProductDto.builder()
                 .wishProductId(savedWishProduct.getId())
                 .wishQuantity(savedWishProduct.getWishQuantity()).build();
+    }
+
+    public List<WishProductDto> getWishProductList(UserDetailsImpl userDetails) {
+        List<WishProduct> wishProductList = wishProductRepository.findByWishProductByUser(userDetails.getUser());
+        if(wishProductList.isEmpty()) {
+            throw new NullPointerException("관심 상품이 없습니다.");
+        }
+
+        return wishProductList.stream().map(wishProduct -> WishProductDto.builder()
+                .wishProductId(wishProduct.getId())
+                .wishQuantity(wishProduct.getWishQuantity())
+                .productDto(ProductDto.builder()
+                        .productId(wishProduct.getProduct().getId())
+                        .productName(wishProduct.getProduct().getProductName())
+                        .imageUrl(wishProduct.getProduct().getImageUrl())
+                        .version(wishProduct.getProduct().getVersion())
+                        .stock(wishProduct.getProduct().getStock())
+                        .price(wishProduct.getProduct().getProductDetailList().get(0).getPrice())
+                        .productDetailInfo(wishProduct.getProduct().getProductDetailList().get(0).getProductDetailInfo()).build()).build()).toList();
+    }
+
+    public WishProductDto updateWishProduct(WishProductDto requestDto) {
+        WishProduct wishProduct = wishProductRepository.findById(requestDto.getWishProductId()).orElseThrow(()->
+                new NullPointerException("해당 관심상품이 존재하지 않습니다.")
+        );
+
+        if(wishProduct.getWishQuantity() <= 0) {
+            throw new IllegalArgumentException("관심상품의 수량은 0개 이하일 수 없습니다.");
+        }
+
+        wishProduct.changeWishProduct(requestDto.getWishQuantity());
+
+        return WishProductDto.builder()
+                .wishProductId(wishProduct.getId())
+                .wishQuantity(wishProduct.getWishQuantity()).build();
+    }
+
+    public boolean deleteWishProduct(WishProductDto requestDto) {
+        if(wishProductRepository.existsById(requestDto.getWishProductId())) {
+            wishProductRepository.deleteById(requestDto.getWishProductId());
+            return true;
+        }
+        return false;
     }
 }
