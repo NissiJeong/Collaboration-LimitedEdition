@@ -1,6 +1,6 @@
 package com.project.collaboration.product.entity;
 
-import com.project.collaboration.product.dto.ProductDetailDto;
+import com.project.collaboration.product.dto.ProductDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,7 +27,7 @@ public class ProductDetail {
     // 변경 내역 관리..?
     private int version;
 
-    public ProductDetail(ProductDetailDto requestDto, Product product) {
+    public ProductDetail(ProductDto requestDto, Product product) {
         this.productDetailInfo = requestDto.getProductDetailInfo();
         this.price = requestDto.getPrice();
         this.version = product.getVersion();

@@ -1,6 +1,5 @@
 package com.project.collaboration.product.controller;
 
-import com.project.collaboration.product.dto.ProductDetailDto;
 import com.project.collaboration.product.dto.ProductDto;
 import com.project.collaboration.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +22,8 @@ public class ProductController {
     }
 
     @PostMapping(value = "/detail/{productId}")
-    public ResponseEntity<?> registerProductDetail(@PathVariable Long productId, @RequestBody ProductDetailDto requestDto) {
-        ProductDetailDto responseDto = productService.saveProductDetail(productId, requestDto);
+    public ResponseEntity<?> registerProductDetail(@PathVariable Long productId, @RequestBody ProductDto requestDto) {
+        ProductDto responseDto = productService.saveProductDetail(productId, requestDto);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -36,7 +35,7 @@ public class ProductController {
 
     @GetMapping(value = "/{productId}/{version}")
     public ResponseEntity<?> getProductDetail(@PathVariable Long productId, @PathVariable int version) {
-        ProductDto responseDto = productService.getProductDeatil(productId, version);
+        ProductDto responseDto = productService.getProductDetail(productId, version);
         return ResponseEntity.ok(responseDto);
     }
 }

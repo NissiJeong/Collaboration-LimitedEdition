@@ -1,6 +1,5 @@
 package com.project.collaboration.product.service;
 
-import com.project.collaboration.product.dto.ProductDetailDto;
 import com.project.collaboration.product.dto.ProductDto;
 import com.project.collaboration.product.entity.Product;
 import com.project.collaboration.product.entity.ProductDetail;
@@ -33,7 +32,7 @@ public class ProductService {
                 .version(savedProduct.getVersion()).build();
     }
 
-    public ProductDetailDto saveProductDetail(Long productId, ProductDetailDto requestDto) {
+    public ProductDto saveProductDetail(Long productId, ProductDto requestDto) {
         Product product = productRepository.findById(productId).orElseThrow(()->
                 new NullPointerException("해당 상품이 존재하지 않습니다.")
         );
@@ -43,8 +42,8 @@ public class ProductService {
 
         ProductDetail savedProductDetail = productDetailRepository.save(productDetail);
 
-        return ProductDetailDto.builder()
-                .id(savedProductDetail.getId())
+        return ProductDto.builder()
+                .productDetailId(savedProductDetail.getId())
                 .version(savedProductDetail.getVersion())
                 .price(savedProductDetail.getPrice())
                 .productDetailInfo(savedProductDetail.getProductDetailInfo()).build();
@@ -62,7 +61,7 @@ public class ProductService {
                         .version(product.getVersion()).build()).toList();
     }
 
-    public ProductDto getProductDeatil(Long productId, int version) {
+    public ProductDto getProductDetail(Long productId, int version) {
         Product product = productRepository.findById(productId).orElseThrow(()->
                 new NullPointerException("해당 상품이 존재하지 않습니다.")
         );
@@ -72,18 +71,14 @@ public class ProductService {
             throw new NullPointerException("해당 상품이 존재하지 않습니다.");
         }
 
-        ProductDetailDto productDetailDto = ProductDetailDto.builder()
-                .id(productDetail.getId())
-                .price(productDetail.getPrice())
-                .productDetailInfo(productDetail.getProductDetailInfo())
-                .version(productDetail.getVersion()).build();
-
         return ProductDto.builder()
                 .productId(product.getId())
                 .productName(product.getProductName())
                 .stock(product.getStock())
                 .imageUrl(product.getImageUrl())
                 .version(product.getVersion())
-                .productDetailDto(productDetailDto).build();
+                .productDetailId(productDetail.getId())
+                .price(productDetail.getPrice())
+                .productDetailInfo(productDetail.getProductDetailInfo()).build();
     }
 }
