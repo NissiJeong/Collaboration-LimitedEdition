@@ -46,7 +46,7 @@ public class UserService {
 
         User saveUser = userRepository.save(user);
 
-        return new UserDto.Builder()
+        return UserDto.builder()
                 .userName(saveUser.getUserName())
                 .email(saveUser.getEmail())
                 .mobileNumber(saveUser.getMobileNumber())

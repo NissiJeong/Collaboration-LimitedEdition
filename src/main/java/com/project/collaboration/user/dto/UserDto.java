@@ -2,6 +2,7 @@ package com.project.collaboration.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,50 +23,13 @@ public class UserDto {
 
     private String verifyCode;
 
-    public UserDto(Builder builder) {
-        this.userName = builder.userName;
-        this.password = builder.password;
-        this.email = builder.email;
-        this.mobileNumber = builder.mobileNumber;
-        this.address = builder.address;
-        this.verifyCode = builder.verifyCode;
-    }
-
-    public static class Builder {
-        private String userName;
-        private String password;
-        private String email;
-        private String mobileNumber;;
-        private String address;
-        private String verifyCode;
-
-        public Builder userName(String userName) {
-            this.userName = userName;
-            return this;
-        }
-        public Builder password(String password) {
-            this.password = password;
-            return this;
-        }
-        public Builder email(String email) {
-            this.email = email;
-            return this;
-        }
-        public Builder mobileNumber(String mobileNumber) {
-            this.mobileNumber = mobileNumber;
-            return this;
-        }
-        public Builder address(String address) {
-            this.address = address;
-            return this;
-        }
-        public Builder verifyCode(String verifyCode) {
-            this.verifyCode = verifyCode;
-            return this;
-        }
-
-        public UserDto build() {
-            return new UserDto(this);
-        }
+    @Builder
+    public UserDto(String userName, String password, String email, String mobileNumber, String address, String verifyCode) {
+        this.userName = userName;
+        this.password = password;
+        this.email = email;
+        this.mobileNumber = mobileNumber;
+        this.address = address;
+        this.verifyCode = verifyCode;
     }
 }

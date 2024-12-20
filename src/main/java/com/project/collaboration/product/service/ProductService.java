@@ -25,7 +25,7 @@ public class ProductService {
         // 상품 마스터 저장
         Product savedProduct = productRepository.save(product);
 
-        return new ProductDto().builder()
+        return ProductDto.builder()
                 .productId(savedProduct.getId())
                 .productName(savedProduct.getProductName())
                 .stock(savedProduct.getStock())
@@ -43,7 +43,7 @@ public class ProductService {
 
         ProductDetail savedProductDetail = productDetailRepository.save(productDetail);
 
-        return new ProductDetailDto().builder()
+        return ProductDetailDto.builder()
                 .id(savedProductDetail.getId())
                 .version(savedProductDetail.getVersion())
                 .price(savedProductDetail.getPrice())
@@ -54,7 +54,7 @@ public class ProductService {
         List<Product> productList = productRepository.findAll();
 
         return productList.stream().map(product ->
-                new ProductDto().builder()
+                ProductDto.builder()
                         .productId(product.getId())
                         .productName(product.getProductName())
                         .imageUrl(product.getImageUrl())
@@ -72,13 +72,13 @@ public class ProductService {
             throw new NullPointerException("해당 상품이 존재하지 않습니다.");
         }
 
-        ProductDetailDto productDetailDto = new ProductDetailDto().builder()
+        ProductDetailDto productDetailDto = ProductDetailDto.builder()
                 .id(productDetail.getId())
                 .price(productDetail.getPrice())
                 .productDetailInfo(productDetail.getProductDetailInfo())
                 .version(productDetail.getVersion()).build();
 
-        return new ProductDto().builder()
+        return ProductDto.builder()
                 .productId(product.getId())
                 .productName(product.getProductName())
                 .stock(product.getStock())
