@@ -47,13 +47,7 @@ public class UserService {
             throw new IllegalArgumentException("중복된 Email 입니다.");
         }
 
-        User user = new User().builder()
-                .userName(userName)
-                .password(password)
-                .email(email)
-                .mobileNumber(mobileNumber)
-                .address(address)
-                .role(UserRoleEnum.USER).build();
+        User user = new User(userName, password, email, mobileNumber, address, UserRoleEnum.USER);
 
         User saveUser = userRepository.save(user);
 

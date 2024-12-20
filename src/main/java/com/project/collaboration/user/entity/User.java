@@ -2,8 +2,6 @@ package com.project.collaboration.user.entity;
 
 import com.project.collaboration.common.entity.Timestamped;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,7 +34,6 @@ public class User extends Timestamped {
     @Enumerated(value = EnumType.STRING)
     private UserRoleEnum role;
 
-    @Builder
     public User(String userName, String password, String email, String mobileNumber, String address, UserRoleEnum role) {
         this.userName = userName;
         this.password = password;
