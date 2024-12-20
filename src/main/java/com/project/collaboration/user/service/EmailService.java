@@ -3,22 +3,19 @@ package com.project.collaboration.user.service;
 import com.project.collaboration.user.repository.RedisRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
 
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
     private final RedisRepository redisRepository;
     private static final String senderEmail = "jnissi92@gmail.com";
-
-    public EmailService(JavaMailSender javaMailSender, RedisRepository redisRepository) {
-        this.javaMailSender = javaMailSender;
-        this.redisRepository = redisRepository;
-    }
 
     private String createCode() {
         int leftLimit = 48; // number '0'

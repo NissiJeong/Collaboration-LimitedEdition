@@ -1,5 +1,6 @@
 package com.project.collaboration.user.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
 import org.springframework.stereotype.Service;
 
@@ -7,12 +8,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 @Service
+@RequiredArgsConstructor
 public class EncryptService {
     private final AesBytesEncryptor encryptor;
-
-    public EncryptService(AesBytesEncryptor encryptor) {
-        this.encryptor = encryptor;
-    }
 
     public String encryptInfo(String info) {
         byte[] encrypt = encryptor.encrypt(info.getBytes(StandardCharsets.UTF_8));

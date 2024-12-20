@@ -4,25 +4,20 @@ import com.project.collaboration.user.dto.UserDto;
 import com.project.collaboration.user.entity.User;
 import com.project.collaboration.user.entity.UserRoleEnum;
 import com.project.collaboration.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final EncryptService encryptService;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, EncryptService encryptService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
-        this.encryptService = encryptService;
-    }
 
     public UserDto signUp(UserDto requestDto) {
         String userName = encryptService.encryptInfo(requestDto.getUserName());

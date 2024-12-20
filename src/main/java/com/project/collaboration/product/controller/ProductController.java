@@ -3,20 +3,18 @@ package com.project.collaboration.product.controller;
 import com.project.collaboration.product.dto.ProductDetailDto;
 import com.project.collaboration.product.dto.ProductDto;
 import com.project.collaboration.product.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/api/product")
 public class ProductController {
 
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
 
     @PostMapping
     public ResponseEntity<?> registerProduct(@RequestBody ProductDto requestDto) {
