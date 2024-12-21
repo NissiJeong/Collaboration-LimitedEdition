@@ -21,21 +21,15 @@ public class ProductController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @PostMapping(value = "/detail/{productId}")
-    public ResponseEntity<?> registerProductDetail(@PathVariable Long productId, @RequestBody ProductDto requestDto) {
-        ProductDto responseDto = productService.saveProductDetail(productId, requestDto);
-        return ResponseEntity.ok(responseDto);
-    }
-
     @GetMapping
     public ResponseEntity<?> getProductList() {
         List<ProductDto> responseDtoList = productService.getProductList();
         return ResponseEntity.ok(responseDtoList);
     }
 
-    @GetMapping(value = "/{productId}/{version}")
-    public ResponseEntity<?> getProductDetail(@PathVariable Long productId, @PathVariable int version) {
-        ProductDto responseDto = productService.getProductDetail(productId, version);
+    @GetMapping(value = "/{productId}")
+    public ResponseEntity<?> getProductDetail(@PathVariable Long productId) {
+        ProductDto responseDto = productService.getProductDetail(productId);
         return ResponseEntity.ok(responseDto);
     }
 }

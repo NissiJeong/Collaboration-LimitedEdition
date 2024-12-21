@@ -12,25 +12,19 @@ public class ProductDto {
     private String productName;
     private int stock;
     private String imageUrl;
-    private int version;
-    private Long productDetailId;
     private int price;
-    private String productDetailInfo;
+    private String detailInfo;
 
     @Builder
     public ProductDto(Long productId, String productName,
                       int stock, String imageUrl,
-                      int version,
-                      Long productDetailId,
                       int price,
-                      String productDetailInfo) {
+                      String detailInfo) {
         this.productId = productId;
         this.productName = productName;
         this.stock = stock;
         this.imageUrl = imageUrl;
-        this.version = version;
-        this.productDetailId = productDetailId;
         this.price = price;
-        this.productDetailInfo = productDetailInfo;
+        this.detailInfo = detailInfo;
     }
 }
