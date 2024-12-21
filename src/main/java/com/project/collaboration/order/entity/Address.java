@@ -5,22 +5,24 @@ import com.project.collaboration.user.entity.User;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Orders")
-public class Order extends Timestamped {
+public class Address extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
+    @Column(name = "address_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "address_id")
-    private Address address;
+    private String city;
 
-    @Enumerated(value = EnumType.STRING)
-    private OrderStatusEnum orderStatus;
+    private String zipCode;
+
+    private String firstAddress;
+
+    private String secondAddress;
+
+    private String defaultAddressYn;
 }
