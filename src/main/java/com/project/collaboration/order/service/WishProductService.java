@@ -9,6 +9,7 @@ import com.project.collaboration.product.repository.ProductRepository;
 import com.project.collaboration.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -56,6 +57,7 @@ public class WishProductService {
                         .detailInfo(wishProduct.getProduct().getDetailInfo()).build()).build()).toList();
     }
 
+    @Transactional
     public WishProductDto updateWishProduct(Long wishProductId, WishProductDto requestDto) {
         WishProduct wishProduct = wishProductRepository.findById(wishProductId).orElseThrow(()->
                 new NullPointerException("해당 관심상품이 존재하지 않습니다.")
