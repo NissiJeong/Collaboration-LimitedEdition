@@ -31,15 +31,15 @@ public class WishProductController {
         return ResponseEntity.ok(responseDtoList);
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateWishProduct(@RequestBody WishProductDto requestDto) {
-        WishProductDto responseDto = wishProductService.updateWishProduct(requestDto);
+    @PutMapping(value = "/{wishProductId}")
+    public ResponseEntity<?> updateWishProduct(@PathVariable Long wishProductId, @RequestBody WishProductDto requestDto) {
+        WishProductDto responseDto = wishProductService.updateWishProduct(wishProductId, requestDto);
         return ResponseEntity.ok(responseDto);
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> deleteWishProduct(@RequestBody WishProductDto requestDto) {
-        boolean isDelete = wishProductService.deleteWishProduct(requestDto);
+    @DeleteMapping(value = "/{wishProductId}")
+    public ResponseEntity<?> deleteWishProduct(@PathVariable Long wishProductId) {
+        boolean isDelete = wishProductService.deleteWishProduct(wishProductId);
         return ResponseEntity.ok(isDelete);
     }
 }

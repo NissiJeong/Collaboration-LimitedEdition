@@ -51,14 +51,13 @@ public class WishProductService {
                         .productId(wishProduct.getProduct().getId())
                         .productName(wishProduct.getProduct().getProductName())
                         .imageUrl(wishProduct.getProduct().getImageUrl())
-                        .version(wishProduct.getProduct().getVersion())
                         .stock(wishProduct.getProduct().getStock())
-                        .price(wishProduct.getProduct().getProductDetailList().get(0).getPrice())
-                        .productDetailInfo(wishProduct.getProduct().getProductDetailList().get(0).getProductDetailInfo()).build()).build()).toList();
+                        .price(wishProduct.getProduct().getPrice())
+                        .detailInfo(wishProduct.getProduct().getDetailInfo()).build()).build()).toList();
     }
 
-    public WishProductDto updateWishProduct(WishProductDto requestDto) {
-        WishProduct wishProduct = wishProductRepository.findById(requestDto.getWishProductId()).orElseThrow(()->
+    public WishProductDto updateWishProduct(Long wishProductId, WishProductDto requestDto) {
+        WishProduct wishProduct = wishProductRepository.findById(wishProductId).orElseThrow(()->
                 new NullPointerException("해당 관심상품이 존재하지 않습니다.")
         );
 
@@ -73,9 +72,9 @@ public class WishProductService {
                 .wishQuantity(wishProduct.getWishQuantity()).build();
     }
 
-    public boolean deleteWishProduct(WishProductDto requestDto) {
-        if(wishProductRepository.existsById(requestDto.getWishProductId())) {
-            wishProductRepository.deleteById(requestDto.getWishProductId());
+    public boolean deleteWishProduct(Long wishProductId) {
+        if(wishProductRepository.existsById(wishProductId)) {
+            wishProductRepository.deleteById(wishProductId);
             return true;
         }
         return false;
