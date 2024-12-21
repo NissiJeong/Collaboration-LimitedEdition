@@ -3,8 +3,10 @@ package com.project.collaboration.order.entity;
 import com.project.collaboration.common.entity.Timestamped;
 import com.project.collaboration.product.entity.Product;
 import jakarta.persistence.*;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
 public class OrderProduct extends Timestamped {
 
     @Id
@@ -29,5 +31,15 @@ public class OrderProduct extends Timestamped {
     private String imageUrl;
 
     @Column(columnDefinition = "TEXT")
-    private String detail_info;
+    private String detailInfo;
+
+    public OrderProduct(Order order, Product product, int orderQuantity) {
+        this.order = order;
+        this.product = product;
+        this.productName = product.getProductName();
+        this.orderPrice = product.getPrice();
+        this.orderQuantity = orderQuantity;
+        this.imageUrl = product.getImageUrl();
+        this.detailInfo = product.getDetailInfo();
+    }
 }

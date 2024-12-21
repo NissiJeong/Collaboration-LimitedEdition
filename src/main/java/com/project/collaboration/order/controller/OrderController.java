@@ -1,6 +1,7 @@
 package com.project.collaboration.order.controller;
 
 import com.project.collaboration.order.dto.OrderRequestDto;
+import com.project.collaboration.order.dto.OrderResponseDto;
 import com.project.collaboration.order.service.OrderService;
 import com.project.collaboration.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> registerOrder(@RequestBody OrderRequestDto orderRequestDto,
                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return null;
+
+        OrderResponseDto orderResponseDto = orderService.saveOrder(orderRequestDto, userDetails);
+        return ResponseEntity.ok(orderResponseDto);
     }
 }
