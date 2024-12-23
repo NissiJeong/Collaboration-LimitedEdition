@@ -37,8 +37,8 @@ public class UserController {
         return ResponseEntity.ok("인증코드가 발송되었습니다.");
     }
 
-    @PostMapping(value = "/mail/virification/code")
-    public ResponseEntity<?> virifyEmailCode(@RequestBody EmailDto requestDto) {
+    @PostMapping(value = "/mail/verification/code")
+    public ResponseEntity<?> verifyEmailCode(@RequestBody EmailDto requestDto) {
         boolean isVerify = emailService.verifyEmailCode(requestDto.getEmail(), requestDto.getVerifyCode());
         return ResponseEntity.ok(isVerify?"인증이 완료되었습니다.":"인증이 실패했습니다.");
     }
