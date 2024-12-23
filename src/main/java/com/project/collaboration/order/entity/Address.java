@@ -29,12 +29,12 @@ public class Address extends Timestamped {
 
     private String defaultAddressYn;
 
-    public Address(AddressDto addressDto, User user) {
+    public Address(String city, String zipCode, String firstAddress, String secondAddress, String defaultAddressYn, User user) {
         this.user = user;
-        this.city = addressDto.getCity();
-        this.zipCode = addressDto.getZipcode();
-        this.firstAddress = addressDto.getFirstAddress();
-        this.secondAddress = addressDto.getSecondAddress();
-        this.defaultAddressYn = addressDto.getDefaultAddressYn();
+        this.city = city;
+        this.zipCode = zipCode;
+        this.firstAddress = firstAddress;
+        this.secondAddress = secondAddress;
+        this.defaultAddressYn = defaultAddressYn;
     }
 }
