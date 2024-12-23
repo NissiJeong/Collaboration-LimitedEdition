@@ -12,20 +12,24 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j(topic = "JWT 검증 및 인가")
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
+    private final AesBytesEncryptor encryptor;
 
-    public JwtAuthorizationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
+    public JwtAuthorizationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, AesBytesEncryptor encryptor) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.encryptor = encryptor;
     }
 
     @Override
@@ -74,5 +78,19 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private Authentication createAuthentication(String username) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    public String encryptInfo(String info) {
+        byte[] encrypt = encryptor.encrypt(info.getBytes(StandardCharsets.UTF_8));
+        return byteArrayToString(encrypt);
+    }
+
+    public String byteArrayToString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte abyte :bytes){
+            sb.append(abyte);
+            sb.append(" ");
+        }
+        return sb.toString();
     }
 }

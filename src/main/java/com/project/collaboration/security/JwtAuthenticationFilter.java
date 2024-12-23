@@ -17,6 +17,7 @@ import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -59,15 +60,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String username = ((UserDetailsImpl) authResult.getPrincipal()).getUsername();
         UserRoleEnum role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
 
-        String token = jwtUtil.createToken(username, role, "accessToken");
-        String refreshToken = jwtUtil.createToken(username, role, "refreshToken");
+        String token = jwtUtil.createToken(decryptInfo(username), role, "accessToken");
+        String refreshToken = jwtUtil.createToken(decryptInfo(username), role, "refreshToken");
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
 
-        // refresh token 은 cookie 에 설정.
-        // response.addHeader(JwtUtil.REFRESH_TOKEN, refreshToken);
+        // refresh token 은 cookie 에 설정
         setRefreshTokenInCookie(refreshToken, response);
         // Redis 에 refreshToken 만료시간 설정(90일)
-        redisRepository.setDataExpire(decryptInfo(username)+"_refreshToken", refreshToken, 90L * 24 * 60 * 60 * 1000L);
+        redisRepository.setDataExpire(decryptInfo(username)+"_refreshToken", jwtUtil.getTokenWithoutBearer(refreshToken), 90L * 24 * 60 * 60 * 1000L);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     public void setRefreshTokenInCookie(String refreshToken, HttpServletResponse response) {
         // Refresh Token을 쿠키에 저장
-        Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
+        Cookie refreshTokenCookie = new Cookie("refresh_token", URLEncoder.encode(refreshToken, StandardCharsets.UTF_8));
         refreshTokenCookie.setHttpOnly(true); // JavaScript에서 접근 불가
         // refreshTokenCookie.setSecure(true);   // HTTPS에서만 전송
         refreshTokenCookie.setPath("/");      // 유효한 경로 설정

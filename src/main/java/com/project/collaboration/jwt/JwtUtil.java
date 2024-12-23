@@ -73,6 +73,13 @@ public class JwtUtil {
         return null;
     }
 
+    public String getTokenWithoutBearer(String bearerToken) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(7);
+        }
+        return bearerToken;
+    }
+
     // 토큰 검증
     public String validateToken(String token) {
         try {
@@ -101,11 +108,14 @@ public class JwtUtil {
 
     // 토큰에서 사용자 정보 가져오기
     public Claims getUserInfoFromToken(String token) {
+        token = getTokenWithoutBearer(token);
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
     public Optional<Map<String, String>> validationRefreshToken(String cookieRefreshToken, String redisRefreshToken, HttpServletResponse res) throws IOException  {
         if (StringUtils.hasText(cookieRefreshToken)) {
+            cookieRefreshToken = getTokenWithoutBearer(cookieRefreshToken);
+            redisRefreshToken = getTokenWithoutBearer(redisRefreshToken);
 
             String validToken = validateToken(cookieRefreshToken);
             if (validToken.contains("TokenError:")) {

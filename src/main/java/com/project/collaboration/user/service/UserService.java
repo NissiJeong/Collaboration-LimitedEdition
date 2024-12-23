@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 
@@ -68,9 +70,9 @@ public class UserService {
         if(cookies != null) {
             for(Cookie cookie : cookies) {
                 if("refresh_token".equals(cookie.getName())) {
-                    String refreshToken = cookie.getValue();
+                    String refreshToken = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
                     String username = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
-                    String redisRefreshToken = redisRepository.getData(encryptService.decryptInfo(username)+"_refreshToken");
+                    String redisRefreshToken = redisRepository.getData(username+"_refreshToken");
 
                     // refresh 토큰이 유효하다면
                     Map<String, String> userInfo = jwtUtil.validationRefreshToken(refreshToken, redisRefreshToken, response).orElseThrow(() ->
@@ -85,7 +87,7 @@ public class UserService {
                     );
 
                     // Redis 에 refreshToken 만료시간 설정(90일)
-                    redisRepository.setDataExpire(encryptService.decryptInfo(username)+"_refreshToken", newRefreshToken, 90L * 24 * 60 * 60 * 1000L);
+                    redisRepository.setDataExpire(username+"_refreshToken", newRefreshToken, 90L * 24 * 60 * 60 * 1000L);
                 }
             }
         }
