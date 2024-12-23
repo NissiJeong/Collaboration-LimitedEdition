@@ -53,7 +53,7 @@
 - ProductUserNotificationHistory: 상품 + 유저별 알림 히스토리
 - User: 사용자 관리<br>
 #### [ERD]
-![img.png](img.png)
+![img.png](images/img.png)
 ### 알림 기능 구현 및 flow
 (1) 상품 재입고 회차 1 증가 &rarr; (2) 재입고 알림 설정한 유저들에게 메시지 전달(Redis Streams 사용) &rarr; (3) 알림 전송 성공한 유저 저장 <br>
 <br>
@@ -116,7 +116,7 @@ private void sendAlarm(Product product) {
 }
 ```
 #### K6 를 사용한 성능 테스트
-![img.png](img.png)
+![img.png](images/img.png)
 - 가상 유저수:1, 5번 반복 조건으로 테스트
 - 해당 api 평균 속도는 1.86s 소요
 - 로컬 환경이지만 성능 개선에 대한 고려가 필요해 보임
