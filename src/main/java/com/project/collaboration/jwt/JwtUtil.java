@@ -1,12 +1,9 @@
 package com.project.collaboration.jwt;
 
 import com.project.collaboration.user.entity.UserRoleEnum;
-import com.project.collaboration.user.repository.RedisRepository;
-import com.project.collaboration.user.service.EncryptService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +35,6 @@ public class JwtUtil {
     private String secretKey;
     private Key key;
     private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
-    private final RedisRepository redisRepository;
-    private final EncryptService encryptService;
 
     @PostConstruct
     public void init() {
@@ -109,7 +104,7 @@ public class JwtUtil {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
-    public Optional<Map<String, String>> validationRefreshToken(String cookieRefreshToken, HttpServletResponse res) throws IOException  {
+    public Optional<Map<String, String>> validationRefreshToken(String cookieRefreshToken, String redisRefreshToken, HttpServletResponse res) throws IOException  {
         if (StringUtils.hasText(cookieRefreshToken)) {
 
             String validToken = validateToken(cookieRefreshToken);
@@ -128,7 +123,6 @@ public class JwtUtil {
             Claims info = getUserInfoFromToken(cookieRefreshToken);
             String username = info.getSubject();
             String role = info.get("auth").toString();
-            String redisRefreshToken = redisRepository.getData(encryptService.decryptInfo(username)+"_refreshToken");
 
             if(cookieRefreshToken.equals(redisRefreshToken)) {
                 return Optional.of(Map.of("username",username, "role", role));
@@ -138,14 +132,13 @@ public class JwtUtil {
         return Optional.empty();
     }
 
-    public void createAccessTokenAndRefreshToken(String username, UserRoleEnum role, HttpServletResponse response) {
+    public Optional<String> createAccessTokenAndRefreshToken(String username, UserRoleEnum role, HttpServletResponse response) {
         String token = createToken(username, role, "accessToken");
         String newRefreshToken = createToken(username, role, "refreshToken");
 
         // accessToken 바인딩
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
 
-        // Redis 에 refreshToken 만료시간 설정(90일)
-        redisRepository.setDataExpire(encryptService.decryptInfo(username)+"_refreshToken", newRefreshToken, 90L * 24 * 60 * 60 * 1000L);
+        return newRefreshToken.describeConstable();
     }
 }

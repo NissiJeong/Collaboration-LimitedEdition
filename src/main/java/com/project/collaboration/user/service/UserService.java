@@ -69,16 +69,23 @@ public class UserService {
             for(Cookie cookie : cookies) {
                 if("refresh_token".equals(cookie.getName())) {
                     String refreshToken = cookie.getValue();
+                    String username = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
+                    String redisRefreshToken = redisRepository.getData(encryptService.decryptInfo(username)+"_refreshToken");
 
                     // refresh 토큰이 유효하다면
-                    Map<String, String> userInfo = jwtUtil.validationRefreshToken(refreshToken, response).orElseThrow(() ->
+                    Map<String, String> userInfo = jwtUtil.validationRefreshToken(refreshToken, redisRefreshToken, response).orElseThrow(() ->
                             new IllegalArgumentException("refresh token 이 유효하지 않습니다. 다시 로그인을 해야합니다.")
                     );
 
                     // accessToken , refreshToken 재발급
-                    String username = userInfo.get("username");
+                    username = userInfo.get("username");
                     UserRoleEnum role = UserRoleEnum.valueOf(userInfo.get("role"));
-                    jwtUtil.createAccessTokenAndRefreshToken(username, role, response);
+                    String newRefreshToken = jwtUtil.createAccessTokenAndRefreshToken(username, role, response).orElseThrow(()->
+                            new IllegalArgumentException("refresh token 생성 오류")
+                    );
+
+                    // Redis 에 refreshToken 만료시간 설정(90일)
+                    redisRepository.setDataExpire(encryptService.decryptInfo(username)+"_refreshToken", newRefreshToken, 90L * 24 * 60 * 60 * 1000L);
                 }
             }
         }
