@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "Orders")
 @NoArgsConstructor
@@ -29,6 +31,9 @@ public class Order extends Timestamped {
     @Enumerated(value = EnumType.STRING)
     private OrderStatusEnum orderStatus;
 
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
     public Order(User user, Address address) {
         this.user = user;
         this.address = address;
@@ -37,5 +42,16 @@ public class Order extends Timestamped {
 
     public void updateStats(OrderStatusEnum orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public boolean canBeReturned() {
+        if (!OrderStatusEnum.DELIVERY_COMPLETE.equals(this.orderStatus)) {
+            return false; // 반품 불가 상태
+        }
+        if (deliveredAt == null) {
+            return false; // 배송 완료 시간 누락
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return deliveredAt.plusDays(1).isAfter(now); // D+1 이내 확인
     }
 }

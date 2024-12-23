@@ -80,16 +80,30 @@ public class OrderService {
 
     // 매일 자정에 주문 상태값 업데이트
     @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
     public void updateOrderStatuses() {
         LocalDateTime now = LocalDateTime.now();
 
-        // D+1: 오늘 날짜 -1 데이터 가져와서 update
+        // D+1: 오늘 날짜 -1 데이터 가져와서 update => 배송 중
         LocalDateTime d1Threshold = now.minusDays(1);
         int updatedToShipping = orderRepository.updateToShipping(d1Threshold);
 
-        // D+2: 오늘 날짜 -2 데이터 가져와서 UPDAte
+        // D+2: 오늘 날짜 -2 데이터 가져와서 update => 배송 완료
         LocalDateTime d2Threshold = now.minusDays(2);
         int updatedToDelivered = orderRepository.updateToDelivered(d2Threshold);
+
+        // 환불 중인 주문 d+1 되면 환불 완료로 처리 & product 재고 복구
+        List<Order> orders = orderRepository.findAllByYesterdayAndInRefund(d1Threshold);
+        for(Order order : orders) {
+            // Order 안에 있는 Product 들 quantity 돌려놓기
+            List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
+            for(OrderProduct orderProduct : orderProducts) {
+                Product product = orderProduct.getProduct();
+                product.changeStockByOrderQuantity(orderProduct.getOrderQuantity(), "plus");
+            }
+
+            order.updateStats(OrderStatusEnum.REFUND_COMPLETE);
+        }
     }
 
     @Transactional
@@ -102,8 +116,27 @@ public class OrderService {
             orderResponseDto = cancelOrder(orderId, userDetails);
         }
         // 2. 상품에 대한 반품(배송 완료 후 D+1 까지만 반품 가능, 반품한 상품은 반품 신청 후 D+1에 재고 반영, 그 후 반품 완료로 변경)
+        else if(requestType.equals("refundOrder")) {
+            orderResponseDto = refundOrder(orderId, userDetails);
+        }
 
         return orderResponseDto;
+    }
+
+    private OrderResponseDto refundOrder(Long orderId, UserDetailsImpl userDetails) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() ->
+                new IllegalArgumentException("해당 주문이 존재하지 않습니다.")
+        );
+
+        if (!order.canBeReturned()) {
+            throw new IllegalStateException("반품 가능한 상품이 아닙니다.");
+        }
+
+        order.updateStats(OrderStatusEnum.IN_REFUND_DELIVERY);
+
+        return OrderResponseDto.builder()
+                .orderId(order.getId())
+                .orderStatus(order.getOrderStatus()).build();
     }
 
     private OrderResponseDto cancelOrder(Long orderId, UserDetailsImpl userDetails) {
