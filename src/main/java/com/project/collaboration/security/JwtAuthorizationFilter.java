@@ -35,8 +35,16 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(tokenValue)) {
 
-            if (!jwtUtil.validateToken(tokenValue)) {
+            String validToken = jwtUtil.validateToken(tokenValue);
+            if (validToken.contains("TokenError:")) {
                 log.error("Token Error");
+
+                // 토큰 만료에 대한 정보 전달 -> 이후 사용자 /user/token/refresh 요청가능
+                if(validToken.equals("TokenError: Expired JWT token")) {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
+                    res.getWriter().write("Your access token has expired. Please use refresh token to obtain a new access token.");
+                }
+
                 return;
             }
 

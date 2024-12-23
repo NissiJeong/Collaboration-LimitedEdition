@@ -5,6 +5,8 @@ import com.project.collaboration.user.dto.UserDto;
 import com.project.collaboration.user.service.EmailService;
 import com.project.collaboration.user.service.UserService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping(value = "/api/user")
@@ -37,5 +41,11 @@ public class UserController {
     public ResponseEntity<?> virifyEmailCode(@RequestBody EmailDto requestDto) {
         boolean isVerify = emailService.verifyEmailCode(requestDto.getEmail(), requestDto.getVerifyCode());
         return ResponseEntity.ok(isVerify?"인증이 완료되었습니다.":"인증이 실패했습니다.");
+    }
+
+    @PostMapping(value = "/refresh")
+    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        userService.refreshAccessToken(request, response);
+        return ResponseEntity.ok("accessToken 재발급 완료");
     }
 }

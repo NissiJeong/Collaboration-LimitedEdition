@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.collaboration.jwt.JwtUtil;
 import com.project.collaboration.user.dto.LoginDto;
 import com.project.collaboration.user.entity.UserRoleEnum;
+import com.project.collaboration.user.repository.RedisRepository;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +24,12 @@ import java.nio.charset.StandardCharsets;
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtUtil jwtUtil;
     private final AesBytesEncryptor encryptor;
+    private final RedisRepository redisRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, AesBytesEncryptor encryptor) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, AesBytesEncryptor encryptor, RedisRepository redisRepository) {
         this.jwtUtil = jwtUtil;
         this.encryptor = encryptor;
+        this.redisRepository = redisRepository;
         setFilterProcessesUrl("/api/user/login");
     }
 
@@ -55,13 +59,30 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String username = ((UserDetailsImpl) authResult.getPrincipal()).getUsername();
         UserRoleEnum role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
 
-        String token = jwtUtil.createToken(username, role);
+        String token = jwtUtil.createToken(username, role, "accessToken");
+        String refreshToken = jwtUtil.createToken(username, role, "refreshToken");
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
+
+        // refresh token 은 cookie 에 설정.
+        // response.addHeader(JwtUtil.REFRESH_TOKEN, refreshToken);
+        setRefreshTokenInCookie(refreshToken, response);
+        // Redis 에 refreshToken 만료시간 설정(90일)
+        redisRepository.setDataExpire(decryptInfo(username)+"_refreshToken", refreshToken, 90L * 24 * 60 * 60 * 1000L);
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
         response.setStatus(401);
+    }
+
+    public void setRefreshTokenInCookie(String refreshToken, HttpServletResponse response) {
+        // Refresh Token을 쿠키에 저장
+        Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
+        refreshTokenCookie.setHttpOnly(true); // JavaScript에서 접근 불가
+        // refreshTokenCookie.setSecure(true);   // HTTPS에서만 전송
+        refreshTokenCookie.setPath("/");      // 유효한 경로 설정
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 30); // 30일 동안 유지
+        response.addCookie(refreshTokenCookie);
     }
 
     public String encryptInfo(String info) {

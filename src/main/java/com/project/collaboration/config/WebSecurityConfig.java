@@ -5,6 +5,7 @@ import com.project.collaboration.jwt.JwtUtil;
 import com.project.collaboration.security.JwtAuthenticationFilter;
 import com.project.collaboration.security.JwtAuthorizationFilter;
 import com.project.collaboration.security.UserDetailsServiceImpl;
+import com.project.collaboration.user.repository.RedisRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -27,14 +28,16 @@ public class WebSecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final RedisRepository redisRepository;
 
     @Value("${aes.secret.key}")
     private String aesSecretKey;
 
-    public WebSecurityConfig(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, AuthenticationConfiguration authenticationConfiguration) {
+    public WebSecurityConfig(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, AuthenticationConfiguration authenticationConfiguration, RedisRepository redisRepository) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.authenticationConfiguration = authenticationConfiguration;
+        this.redisRepository = redisRepository;
     }
 
     @Bean
@@ -54,7 +57,7 @@ public class WebSecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, aesBytesEncryptor());
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, aesBytesEncryptor(), redisRepository);
         filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
         return filter;
     }
