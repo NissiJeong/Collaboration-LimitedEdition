@@ -3,10 +3,12 @@ package com.project.collaboration.order.entity;
 import com.project.collaboration.common.entity.Timestamped;
 import com.project.collaboration.product.entity.Product;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
+@Getter
 public class OrderProduct extends Timestamped {
 
     @Id

@@ -34,4 +34,8 @@ public class Order extends Timestamped {
         this.address = address;
         this.orderStatus = OrderStatusEnum.ORDER_COMPLETE;
     }
+
+    public void updateStats(OrderStatusEnum orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 }

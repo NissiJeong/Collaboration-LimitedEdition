@@ -33,4 +33,13 @@ public class Product {
         this.detailInfo = detailInfo;
         this.price = price;
     }
+
+    public void changeStockByOrderQuantity(int orderQuantity, String type) {
+        if(type.equals("minus") && stock - orderQuantity >= 0) {
+            stock -= orderQuantity;
+        }
+        else if(type.equals("plus")) {
+            stock += orderQuantity;
+        }
+    }
 }
