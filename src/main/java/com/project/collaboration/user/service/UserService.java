@@ -10,6 +10,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -71,7 +73,25 @@ public class UserService {
             for(Cookie cookie : cookies) {
                 if("refresh_token".equals(cookie.getName())) {
                     String refreshToken = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
-                    String username = jwtUtil.getUserInfoFromToken(refreshToken).getSubject();
+
+                    // refresh token 검증과 동시에 username 반환
+                    String username = jwtUtil.validateToken(refreshToken);
+                    if(username == null) {
+                        throw new NullPointerException("refresh token 으로부터 User 정보를 가져올 수 없습니다.");
+                    }
+                    if (username.contains("TokenError:")) {
+                        log.error("Token Error");
+                        // 토큰 만료에 대한 정보 전달 -> 이후 사용자 /user/token/refresh 요청가능
+                        switch (username) {
+                            case "TokenError: Expired JWT token" ->
+                                    throw new IllegalArgumentException("TokenError: Expired JWT token");
+                            case "TokenError: Invalid JWT signature" ->
+                                    throw new IllegalArgumentException("TokenError: Invalid JWT signature");
+                            case "TokenError: Invalid token" ->
+                                    throw new IllegalArgumentException("TokenError: Invalid token");
+                        }
+                        return;
+                    }
                     String redisRefreshToken = redisRepository.getData(username+"_refreshToken");
 
                     // refresh 토큰이 유효하다면
