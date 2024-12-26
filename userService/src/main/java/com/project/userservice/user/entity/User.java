@@ -1,6 +1,5 @@
 package com.project.userservice.user.entity;
 
-import com.project.userservice.common.entity.Timestamped;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

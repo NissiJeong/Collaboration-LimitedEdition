@@ -1,6 +1,5 @@
 package com.project.orderservice.order.dto;
 
-import com.project.orderservice.product.dto.ProductDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

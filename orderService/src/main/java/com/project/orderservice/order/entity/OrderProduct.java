@@ -1,7 +1,6 @@
 package com.project.orderservice.order.entity;
 
-import com.project.orderservice.common.entity.Timestamped;
-import com.project.orderservice.product.entity.Product;
+import com.project.orderservice.order.dto.ProductDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,9 +19,7 @@ public class OrderProduct extends Timestamped {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
+    private Long productId;
 
     private String productName;
 
@@ -35,13 +32,13 @@ public class OrderProduct extends Timestamped {
     @Column(columnDefinition = "TEXT")
     private String detailInfo;
 
-    public OrderProduct(Order order, Product product, int orderQuantity) {
+    public OrderProduct(Order order, ProductDto productDto, int orderQuantity) {
         this.order = order;
-        this.product = product;
-        this.productName = product.getProductName();
-        this.orderPrice = product.getPrice();
+        this.productId = productDto.getProductId();
+        this.productName = productDto.getProductName();
+        this.orderPrice = productDto.getPrice();
         this.orderQuantity = orderQuantity;
-        this.imageUrl = product.getImageUrl();
-        this.detailInfo = product.getDetailInfo();
+        this.imageUrl = productDto.getImageUrl();
+        this.detailInfo = productDto.getDetailInfo();
     }
 }

@@ -2,10 +2,9 @@ package com.project.orderservice.order.controller;
 
 import com.project.orderservice.order.dto.WishProductDto;
 import com.project.orderservice.order.service.WishProductService;
-import com.project.orderservice.security.UserDetailsImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,15 +18,14 @@ public class WishProductController {
 
     @PostMapping(value = "/{productId}")
     public ResponseEntity<?> registerWishProduct(@PathVariable Long productId,
-                                                 @RequestBody WishProductDto requestDto,
-                                                 @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        WishProductDto responseDto = wishProductService.saveWishProduct(productId, requestDto, userDetails);
+                                                 @RequestBody WishProductDto requestDto, HttpServletRequest request) {
+        WishProductDto responseDto = wishProductService.saveWishProduct(productId, requestDto, request);
         return ResponseEntity.ok(responseDto);
     }
 
     @GetMapping
-    public ResponseEntity<?> getWishProductList(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        List<WishProductDto> responseDtoList = wishProductService.getWishProductList(userDetails);
+    public ResponseEntity<?> getWishProductList(HttpServletRequest request) {
+        List<WishProductDto> responseDtoList = wishProductService.getWishProductList(request);
         return ResponseEntity.ok(responseDtoList);
     }
 

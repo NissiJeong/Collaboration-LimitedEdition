@@ -48,4 +48,7 @@ public class UserController {
         userService.refreshAccessToken(request, response);
         return ResponseEntity.ok("accessToken 재발급 완료");
     }
+
+    //TODO 주소 저장 api 생성 필요
+    //@PostMapping(value = "")
 }

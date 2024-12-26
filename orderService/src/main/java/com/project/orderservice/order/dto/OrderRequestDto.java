@@ -7,6 +7,6 @@ import java.util.List;
 @Getter
 public class OrderRequestDto {
     private List<OrderProductDto> orderProductDtoList;
-    private AddressDto addressDto;
+    private Long addressId;
     private String requestType;
 }

@@ -1,7 +1,5 @@
 package com.project.orderservice.order.entity;
 
-import com.project.orderservice.common.entity.Timestamped;
-import com.project.orderservice.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,13 +17,9 @@ public class Order extends Timestamped {
     @Column(name = "order_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    private Long userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "address_id")
-    private Address address;
+    private Long addressId;
 
     @Enumerated(value = EnumType.STRING)
     private OrderStatusEnum orderStatus;
@@ -33,9 +27,9 @@ public class Order extends Timestamped {
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
-    public Order(User user, Address address) {
-        this.user = user;
-        this.address = address;
+    public Order(Long userId, Long addressId) {
+        this.userId = userId;
+        this.addressId = addressId;
         this.orderStatus = OrderStatusEnum.ORDER_COMPLETE;
     }
 
