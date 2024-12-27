@@ -3,13 +3,16 @@ package com.project.userservice.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.userservice.jwt.JwtUtil;
 import com.project.userservice.user.dto.LoginDto;
+import com.project.userservice.user.entity.User;
 import com.project.userservice.user.entity.UserRoleEnum;
 import com.project.userservice.user.repository.RedisRepository;
+import com.project.userservice.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -26,6 +29,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private final JwtUtil jwtUtil;
     private final AesBytesEncryptor encryptor;
     private final RedisRepository redisRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, AesBytesEncryptor encryptor, RedisRepository redisRepository) {
         this.jwtUtil = jwtUtil;
@@ -60,8 +65,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String username = ((UserDetailsImpl) authResult.getPrincipal()).getUsername();
         UserRoleEnum role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
 
-        String token = jwtUtil.createToken(decryptInfo(username), role, "accessToken");
-        String refreshToken = jwtUtil.createToken(decryptInfo(username), role, "refreshToken");
+        User user = userRepository.findByEmail(username).orElseThrow(()->
+                new NullPointerException("로그인한 사용자 정보가 존재하지 않습니다.")
+        );
+
+        String token = jwtUtil.createToken(decryptInfo(username), user.getId(), role, "accessToken");
+        String refreshToken = jwtUtil.createToken(decryptInfo(username), user.getId(), role, "refreshToken");
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
 
         // refresh token 은 cookie 에 설정

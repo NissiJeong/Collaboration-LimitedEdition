@@ -101,8 +101,11 @@ public class UserService {
 
                     // accessToken , refreshToken 재발급
                     username = userInfo.get("username");
+                    User user = userRepository.findByEmail(username).orElseThrow(()->
+                            new NullPointerException("사용자 정보가 존재하지 않습니다.")
+                    );
                     UserRoleEnum role = UserRoleEnum.valueOf(userInfo.get("role"));
-                    String newRefreshToken = jwtUtil.createAccessTokenAndRefreshToken(username, role, response).orElseThrow(()->
+                    String newRefreshToken = jwtUtil.createAccessTokenAndRefreshToken(username, user.getId(), role, response).orElseThrow(()->
                             new IllegalArgumentException("refresh token 생성 오류")
                     );
 

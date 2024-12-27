@@ -26,7 +26,7 @@ public class User extends Timestamped {
     @Column(nullable = false, unique = true)
     private String mobileNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String address;
 
     @Column(nullable = false)

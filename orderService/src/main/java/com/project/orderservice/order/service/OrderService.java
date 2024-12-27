@@ -43,9 +43,16 @@ public class OrderService {
 //                    new NullPointerException("해당 주소가 존재하지 않습니다.")
 //            );
 //        }
+        // X-Claim-email 헤더 값을 가져오기
+        String email = request.getHeader("X-Claim-email");
+        Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
+        String role = request.getHeader("X-Claim-auth");
+
+        System.out.println("userId = " + userId);
+        System.out.println("email = " + email);
+        System.out.println("role = " + role);
 
         Long addressId = 1L;
-        Long userId = 1L;
 
         // 1. Order 등록
         Order savedOrder = orderRepository.save(new Order(userId, addressId));

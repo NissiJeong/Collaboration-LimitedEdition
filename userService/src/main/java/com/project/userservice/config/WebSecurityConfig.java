@@ -2,7 +2,6 @@ package com.project.userservice.config;
 
 import com.project.userservice.jwt.JwtUtil;
 import com.project.userservice.security.JwtAuthenticationFilter;
-import com.project.userservice.security.JwtAuthorizationFilter;
 import com.project.userservice.security.UserDetailsServiceImpl;
 import com.project.userservice.user.repository.RedisRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,10 +60,10 @@ public class WebSecurityConfig {
         return filter;
     }
 
-    @Bean
-    public JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(jwtUtil, userDetailsService, aesBytesEncryptor());
-    }
+//    @Bean
+//    public JwtAuthorizationFilter jwtAuthorizationFilter() {
+//        return new JwtAuthorizationFilter(jwtUtil, userDetailsService, aesBytesEncryptor());
+//    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -81,11 +80,12 @@ public class WebSecurityConfig {
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // resources 접근 허용 설정
                         .requestMatchers("/").permitAll() // 메인 페이지 요청 허가
                         .requestMatchers("/api/**").permitAll() // '/api/'로 시작하는 요청 모두 접근 허가
+                        .requestMatchers("/api/user/").permitAll()
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 
         // 필터 관리
-        http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
+        // http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

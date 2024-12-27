@@ -43,7 +43,7 @@ public class JwtUtil {
     }
 
     // 토큰 생성
-    public String createToken(String username, UserRoleEnum role, String type) {
+    public String createToken(String username, Long userId,UserRoleEnum role, String type) {
         // 토큰 만료시간
         long TOKEN_TIME = 0; // 60분
         if(type.equals("accessToken")) {
@@ -56,7 +56,8 @@ public class JwtUtil {
 
         return BEARER_PREFIX +
                 Jwts.builder()
-                        .setSubject(username) // 사용자 식별자값(ID)
+                        .setSubject(String.valueOf(userId))
+                        .claim("email", username)// 사용자 식별자값(ID)
                         .claim(AUTHORIZATION_KEY, role) // 사용자 권한
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME)) // 만료 시간
                         .setIssuedAt(date) // 발급일
@@ -142,9 +143,9 @@ public class JwtUtil {
         return Optional.empty();
     }
 
-    public Optional<String> createAccessTokenAndRefreshToken(String username, UserRoleEnum role, HttpServletResponse response) {
-        String token = createToken(username, role, "accessToken");
-        String newRefreshToken = createToken(username, role, "refreshToken");
+    public Optional<String> createAccessTokenAndRefreshToken(String username, Long userId, UserRoleEnum role, HttpServletResponse response) {
+        String token = createToken(username, userId, role, "accessToken");
+        String newRefreshToken = createToken(username, userId, role, "refreshToken");
 
         // accessToken 바인딩
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
