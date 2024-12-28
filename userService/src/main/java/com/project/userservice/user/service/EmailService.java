@@ -86,6 +86,7 @@ public class EmailService {
         }
         boolean isVerify = codeFoundByEmail.equals(verifyCode);
         if(isVerify) {
+            redisRepository.setDataExpire(email+":verify","Y", 60 * 30L);
             redisRepository.deleteData(email);
         }
         return isVerify;

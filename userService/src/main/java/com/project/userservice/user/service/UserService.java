@@ -38,15 +38,11 @@ public class UserService {
         String email = encryptService.encryptInfo(requestDto.getEmail());
         String mobileNumber = encryptService.encryptInfo(requestDto.getMobileNumber());
         String address = encryptService.encryptInfo(requestDto.getAddress());
-        String verifyCode = requestDto.getVerifyCode();
-
-        if(verifyCode==null || verifyCode.isBlank() || verifyCode.isEmpty()) {
-            throw new IllegalArgumentException("인증 코드를 입력해야 합니다.");
-        }
 
         // 인증 실패할 경우
-        if(!emailService.verifyEmailCode(requestDto.getEmail(), verifyCode)) {
-            throw new IllegalArgumentException("이메일 인증에 실패했습니다.");
+        String isVerify = redisRepository.getData(requestDto.getEmail()+":verify");
+        if(isVerify.isEmpty() || "N".equals(isVerify)) {
+            throw new IllegalArgumentException("이메일 인증이 필요합니다.");
         }
 
         // email 중복확인
