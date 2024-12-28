@@ -32,4 +32,10 @@ public class ProductController {
         ProductDto responseDto = productService.getProductDetail(productId);
         return ResponseEntity.ok(responseDto);
     }
+
+    @PutMapping(value = "/stock/{productId}")
+    public ResponseEntity<?> changeProductStockByOrder(@PathVariable Long productId, @RequestBody ProductDto productDto) {
+        ProductDto responseDto = productService.changeProductStockByOrder(productId, productDto);
+        return ResponseEntity.ok(responseDto);
+    }
 }

@@ -1,5 +1,6 @@
 package com.project.orderservice.order.service;
 
+import com.project.orderservice.feignclient.product.ProductFeign;
 import com.project.orderservice.order.dto.OrderProductDto;
 import com.project.orderservice.order.dto.OrderRequestDto;
 import com.project.orderservice.order.dto.OrderResponseDto;
@@ -25,34 +26,13 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
+    private final ProductFeign productFeign;
 
     @Transactional
     public OrderResponseDto saveOrder(OrderRequestDto orderRequestDto, HttpServletRequest request) {
-//        AddressDto addressDto = orderRequestDto.getAddressDto();
-//        String city = encryptService.encryptInfo(addressDto.getCity() == null ? "" : addressDto.getCity());
-//        String zipCode = encryptService.encryptInfo(addressDto.getZipcode() == null ? "" : addressDto.getZipcode());
-//        String firstAddress = encryptService.encryptInfo(addressDto.getFirstAddress() == null ? "" : addressDto.getFirstAddress());
-//        String secondAddress = encryptService.encryptInfo(addressDto.getSecondAddress() == null ? "" : addressDto.getSecondAddress());
-//
-//        Address address = null;
-//        // 주소가 존재하지 않으면 주소 저장
-//        if(addressDto.getAddressId() == null) {
-//            address = addressRepository.save(new Address(city, zipCode, firstAddress, secondAddress, addressDto.getDefaultAddressYn(),userDetails.getUser()));
-//        } else {
-//            address = addressRepository.findById(addressDto.getAddressId()).orElseThrow(() ->
-//                    new NullPointerException("해당 주소가 존재하지 않습니다.")
-//            );
-//        }
-        // X-Claim-email 헤더 값을 가져오기
-        String email = request.getHeader("X-Claim-email");
+        // X-Claim-sub 헤더 값을 가져오기
         Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
-        String role = request.getHeader("X-Claim-auth");
-
-        System.out.println("userId = " + userId);
-        System.out.println("email = " + email);
-        System.out.println("role = " + role);
-
-        Long addressId = 1L;
+        Long addressId = orderRequestDto.getAddressId();
 
         // 1. Order 등록
         Order savedOrder = orderRepository.save(new Order(userId, addressId));
@@ -63,14 +43,12 @@ public class OrderService {
         List<OrderProductDto> productDtoList = orderRequestDto.getOrderProductDtoList();
         List<OrderProduct> orderProducts = new ArrayList<>();
         for(OrderProductDto orderProductDto : productDtoList) {
-//            Product product = productRepository.findById(orderProductDto.getProductId()).orElseThrow(() ->
-//                    new NullPointerException("해당 상품이 존재하지 않습니다.")
-//            );
-            // TODO 각 주문에 대한 상품 정보 가져오기
-            ProductDto productDto = ProductDto.builder().productName("test").build();
+            ProductDto productDto = productFeign.getProduct(orderProductDto.getProductId()).orElseThrow(() ->
+                    new NullPointerException("해당 상품이 존재하지 않습니다.")
+            );
 
             // TODO 각각의 상품에 대한 재고 관리 - kafka
-            //product.changeStockByOrderQuantity(orderProductDto.getOrderQuantity(), "minus");
+            productFeign.changeProductStockByOrder(orderProductDto.getProductId(), orderProductDto);
 
             OrderProduct orderProduct = new OrderProduct(savedOrder, productDto, orderProductDto.getOrderQuantity());
             orderProducts.add(orderProduct);

@@ -27,7 +27,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
     private final EncryptService encryptService;
     private final JwtUtil jwtUtil;
     private final RedisRepository redisRepository;

@@ -5,6 +5,7 @@ import com.project.productservice.product.entity.Product;
 import com.project.productservice.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -45,6 +46,23 @@ public class ProductService {
         Product product = productRepository.findById(productId).orElseThrow(()->
                 new NullPointerException("해당 상품이 존재하지 않습니다.")
         );
+
+        return ProductDto.builder()
+                .productId(product.getId())
+                .productName(product.getProductName())
+                .stock(product.getStock())
+                .imageUrl(product.getImageUrl())
+                .price(product.getPrice())
+                .detailInfo(product.getDetailInfo()).build();
+    }
+
+    @Transactional
+    public ProductDto changeProductStockByOrder(Long productId, ProductDto productDto) {
+        Product product = productRepository.findById(productId).orElseThrow(()->
+                new NullPointerException("해당 상품이 존재하지 않습니다.")
+        );
+
+        product.changeStockByOrderQuantity(productDto.getOrderQuantity(), "minus");
 
         return ProductDto.builder()
                 .productId(product.getId())
