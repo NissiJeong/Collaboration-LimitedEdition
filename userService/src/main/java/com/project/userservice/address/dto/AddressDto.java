@@ -1,4 +1,4 @@
-package com.project.userservice.user.dto;
+package com.project.userservice.address.dto;
 
 import lombok.Builder;
 import lombok.Getter;
