@@ -1,5 +1,6 @@
 package com.project.orderservice.order.controller;
 
+import com.project.common.dto.ResponseMessage;
 import com.project.orderservice.order.dto.OrderRequestDto;
 import com.project.orderservice.order.dto.OrderResponseDto;
 import com.project.orderservice.order.service.OrderService;
@@ -16,15 +17,27 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<?> registerOrder(@RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) {
+    public ResponseEntity<ResponseMessage> registerOrder(@RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) {
         OrderResponseDto orderResponseDto = orderService.saveOrder(orderRequestDto, request);
-        return ResponseEntity.ok(orderResponseDto);
+
+        ResponseMessage response = ResponseMessage.builder()
+                .data(orderResponseDto)
+                .statusCode(200)
+                .resultMessage("주문 성공").build();
+
+        return ResponseEntity.status(200).body(response);
     }
 
     @PutMapping("/{orderId}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long orderId,
+    public ResponseEntity<ResponseMessage> updateOrderStatus(@PathVariable Long orderId,
                                                @RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) {
         OrderResponseDto orderResponseDto = orderService.updateOrderStatus(orderId, orderRequestDto, request);
-        return ResponseEntity.ok(orderResponseDto);
+
+        ResponseMessage response = ResponseMessage.builder()
+                .data(orderResponseDto)
+                .statusCode(200)
+                .resultMessage("주문 수정 성공").build();
+
+        return ResponseEntity.status(200).body(response);
     }
 }
