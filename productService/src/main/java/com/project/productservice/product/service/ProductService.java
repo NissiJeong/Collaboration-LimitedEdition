@@ -57,12 +57,12 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto changeProductStockByOrder(Long productId, ProductDto productDto) {
+    public ProductDto changeProductStockByOrder(Long productId, ProductDto productDto, String type) {
         Product product = productRepository.findById(productId).orElseThrow(()->
                 new NullPointerException("해당 상품이 존재하지 않습니다.")
         );
 
-        product.changeStockByOrderQuantity(productDto.getOrderQuantity(), "minus");
+        product.changeStockByOrderQuantity(productDto.getOrderQuantity(), type);
 
         return ProductDto.builder()
                 .productId(product.getId())

@@ -35,7 +35,13 @@ public class ProductController {
 
     @PutMapping(value = "/stock/{productId}")
     public ResponseEntity<?> changeProductStockByOrder(@PathVariable Long productId, @RequestBody ProductDto productDto) {
-        ProductDto responseDto = productService.changeProductStockByOrder(productId, productDto);
+        ProductDto responseDto = productService.changeProductStockByOrder(productId, productDto, "minus");
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @PutMapping(value = "/stock/cancel/{productId}")
+    public ResponseEntity<?> plusProductStockByOrderCancel(@PathVariable Long productId, @RequestBody ProductDto productDto) {
+        ProductDto responseDto = productService.changeProductStockByOrder(productId, productDto, "plus");
         return ResponseEntity.ok(responseDto);
     }
 }

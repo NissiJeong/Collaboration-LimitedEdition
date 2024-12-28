@@ -18,4 +18,7 @@ public interface ProductFeign {
 
     @PutMapping(value = "/api/product/stock/{productId}")
     void changeProductStockByOrder(@PathVariable("productId") Long productId, @RequestBody OrderProductDto requestDto);
+
+    @PutMapping(value ="/api/product/stock/cancel/{productId}")
+    void plusProductStockByOrderCancel(@PathVariable("productId") Long productId, @RequestBody OrderProductDto requestDto);
 }

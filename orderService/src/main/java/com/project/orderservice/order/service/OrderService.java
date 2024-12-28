@@ -82,7 +82,9 @@ public class OrderService {
             for(OrderProduct orderProduct : orderProducts) {
                 Long productId = orderProduct.getProductId();
                 // TODO 각각의 상품에 대한 재고 관리 - kafka
-                //product.changeStockByOrderQuantity(orderProduct.getOrderQuantity(), "plus");
+                productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
+                        productId(productId).
+                        orderQuantity(orderProduct.getOrderQuantity()).build());
             }
 
             order.updateStats(OrderStatusEnum.REFUND_COMPLETE);
@@ -91,7 +93,8 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDto updateOrderStatus(Long orderId, OrderRequestDto orderRequestDto, HttpServletRequest request) {
-        Long userId = 1L;
+        // X-Claim-sub 헤더 값을 가져오기
+        Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
 
         // 사용자의 요청에 따른 메서드 실행
         String requestType = orderRequestDto.getRequestType();
@@ -139,7 +142,9 @@ public class OrderService {
         for(OrderProduct orderProduct : orderProducts) {
             Long productId = orderProduct.getProductId();
             // TODO 각각의 상품에 대한 재고 관리 - kafka
-            //product.changeStockByOrderQuantity(orderProduct.getOrderQuantity(), "plus");
+            productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
+                    productId(productId).
+                    orderQuantity(orderProduct.getOrderQuantity()).build());
         }
 
         // Order 상태 변경
