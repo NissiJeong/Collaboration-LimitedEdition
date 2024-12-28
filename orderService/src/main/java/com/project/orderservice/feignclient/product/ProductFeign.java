@@ -3,11 +3,9 @@ package com.project.orderservice.feignclient.product;
 import com.project.orderservice.order.dto.OrderProductDto;
 import com.project.orderservice.order.dto.ProductDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @FeignClient(name = "product-service")
@@ -21,4 +19,7 @@ public interface ProductFeign {
 
     @PutMapping(value ="/api/product/stock/cancel/{productId}")
     void plusProductStockByOrderCancel(@PathVariable("productId") Long productId, @RequestBody OrderProductDto requestDto);
+
+    @PostMapping(value = "/api/product/bulk")
+    List<ProductDto> getProductList(@RequestBody  List<ProductDto> productDtoList);
 }

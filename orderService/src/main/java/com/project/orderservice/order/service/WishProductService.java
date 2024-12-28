@@ -1,5 +1,6 @@
 package com.project.orderservice.order.service;
 
+import com.project.orderservice.feignclient.product.ProductFeign;
 import com.project.orderservice.order.dto.ProductDto;
 import com.project.orderservice.order.dto.WishProductDto;
 import com.project.orderservice.order.entity.WishProduct;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,15 +18,15 @@ import java.util.List;
 public class WishProductService {
 
     private final WishProductRepository wishProductRepository;
+    private final ProductFeign productFeign;
 
     public WishProductDto saveWishProduct(Long productId, WishProductDto requestDto, HttpServletRequest request) {
-        //TODO Product 를 가져와야 함
-        /*
-        Product product = productRepository.findById(productId).orElseThrow(() ->
+        ProductDto productDto = productFeign.getProduct(productId).orElseThrow(() ->
                 new NullPointerException("해당 상품이 존재하지 않습니다.")
         );
-        */
-        Long userId = 1L;
+
+        // X-Claim-sub 헤더 값을 가져오기
+        Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
 
         WishProduct existWishProduct = wishProductRepository.findByProductIdAndUserId(productId, userId);
         if(existWishProduct != null) {
@@ -41,24 +43,21 @@ public class WishProductService {
     }
 
     public List<WishProductDto> getWishProductList(HttpServletRequest request) {
-        Long userId = 1L;
+        // X-Claim-sub 헤더 값을 가져오기
+        Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
 
         List<WishProduct> wishProductList = wishProductRepository.findByWishProductByUserId(userId);
         if(wishProductList.isEmpty()) {
             throw new NullPointerException("관심 상품이 없습니다.");
         }
 
+        List<ProductDto> productDtoList = wishProductList.stream().map(wishProduct -> ProductDto.builder().productId(wishProduct.getProductId()).build()).toList();
+        List<ProductDto> productInfoList = productFeign.getProductList(productDtoList);
+
         return wishProductList.stream().map(wishProduct -> WishProductDto.builder()
                 .wishProductId(wishProduct.getId())
                 .wishQuantity(wishProduct.getWishQuantity())
-                /*
-                .productDto(ProductDto.builder()
-                        .productId(wishProduct.getProduct().getId())
-                        .productName(wishProduct.getProduct().getProductName())
-                        .imageUrl(wishProduct.getProduct().getImageUrl())
-                        .stock(wishProduct.getProduct().getStock())
-                        .price(wishProduct.getProduct().getPrice())
-                        .detailInfo(wishProduct.getProduct().getDetailInfo()).build())*/.build()).toList();
+                .productDtoList(productInfoList).build()).toList();
     }
 
     @Transactional

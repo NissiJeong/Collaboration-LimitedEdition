@@ -72,4 +72,19 @@ public class ProductService {
                 .price(product.getPrice())
                 .detailInfo(product.getDetailInfo()).build();
     }
+
+    public List<ProductDto> getProductList(List<ProductDto> productDtoList) {
+        List<Long> productIds = productDtoList.stream().map(ProductDto::getProductId).toList();
+
+        List<Product> productList = productRepository.findAllById(productIds);
+
+        return productList.stream().map(product ->
+                ProductDto.builder()
+                        .productId(product.getId())
+                        .productName(product.getProductName())
+                        .imageUrl(product.getImageUrl())
+                        .price(product.getPrice())
+                        .stock(product.getStock())
+                        .detailInfo(product.getDetailInfo()).build()).toList();
+    }
 }

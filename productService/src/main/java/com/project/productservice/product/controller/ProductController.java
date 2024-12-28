@@ -44,4 +44,10 @@ public class ProductController {
         ProductDto responseDto = productService.changeProductStockByOrder(productId, productDto, "plus");
         return ResponseEntity.ok(responseDto);
     }
+
+    @PostMapping(value = "/bulk")
+    public ResponseEntity<?> getProductList(@RequestBody List<ProductDto> productDtoList) {
+        List<ProductDto> responseDtoList = productService.getProductList(productDtoList);
+        return ResponseEntity.ok(responseDtoList);
+    }
 }
