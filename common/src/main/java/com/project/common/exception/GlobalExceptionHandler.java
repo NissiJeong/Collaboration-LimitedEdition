@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.project.userservice")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({BizRuntimeException.class})
