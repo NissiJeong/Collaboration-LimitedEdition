@@ -22,4 +22,13 @@ public interface ProductFeign {
 
     @PostMapping(value = "/api/product/bulk")
     List<ProductDto> getProductList(@RequestBody  List<ProductDto> productDtoList);
+
+    @GetMapping("/errorful/case1")
+    void errorCase1();
+
+    @GetMapping("/errorful/case2")
+    void errorCase2();
+
+    @GetMapping("/errorful/case3")
+    void errorCase3();
 }
