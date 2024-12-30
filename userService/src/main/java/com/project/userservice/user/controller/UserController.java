@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,7 +31,6 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<ResponseMessage> signUp(@Valid @RequestBody UserDto requestDto) {
-        log.info("signup dto: {}",requestDto.getUserName());
         UserDto user = userService.signUp(requestDto);
 
         ResponseMessage response = ResponseMessage.builder()

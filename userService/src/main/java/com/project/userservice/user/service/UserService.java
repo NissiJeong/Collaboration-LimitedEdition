@@ -1,5 +1,6 @@
 package com.project.userservice.user.service;
 
+import com.project.common.exception.BizRuntimeException;
 import com.project.userservice.jwt.JwtUtil;
 import com.project.userservice.user.dto.UserDto;
 import com.project.userservice.user.entity.User;
@@ -31,7 +32,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final RedisRepository redisRepository;
 
-    public UserDto signUp(UserDto requestDto) {
+    public UserDto signUp(UserDto requestDto) throws BizRuntimeException{
         String userName = encryptService.encryptInfo(requestDto.getUserName());
         String password = passwordEncoder.encode(requestDto.getPassword());
         String email = encryptService.encryptInfo(requestDto.getEmail());
@@ -40,14 +41,14 @@ public class UserService {
 
         // 인증 실패할 경우
         String isVerify = redisRepository.getData(requestDto.getEmail()+":verify");
-        if(isVerify.isEmpty() || "N".equals(isVerify)) {
-            throw new IllegalArgumentException("이메일 인증이 필요합니다.");
+        if(isVerify == null || isVerify.isEmpty() || "N".equals(isVerify)) {
+            throw new BizRuntimeException("이메일 인증이 필요합니다.");
         }
 
         // email 중복확인
         Optional<User> checkUser = userRepository.findByEmail(email);
         if(checkUser.isPresent()) {
-            throw new IllegalArgumentException("중복된 Email 입니다.");
+            throw new BizRuntimeException("중복된 Email 입니다.");
         }
 
         User user = new User(userName, password, email, mobileNumber, address, UserRoleEnum.USER);

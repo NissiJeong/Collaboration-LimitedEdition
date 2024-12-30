@@ -5,7 +5,12 @@ plugins {
 }
 
 group = 'com.project'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
+
+// 패키징 설정
+jar {
+    archiveBaseName.set('common')
+}
 
 java {
     toolchain {

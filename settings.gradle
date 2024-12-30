@@ -2,7 +2,7 @@ rootProject.name = 'collaboration'
 
 include "eureka-server"
 include "gateway-server"
-include "common"
+include ":common"
 include "userService"
 include "productService"
 include "orderService"
