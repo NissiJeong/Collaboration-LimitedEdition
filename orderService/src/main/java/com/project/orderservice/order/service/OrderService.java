@@ -12,6 +12,7 @@ import com.project.orderservice.order.repository.OrderProductRepository;
 import com.project.orderservice.order.repository.OrderRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -153,5 +155,33 @@ public class OrderService {
         return OrderResponseDto.builder()
                 .orderId(order.getId())
                 .orderStatus(OrderStatusEnum.ORDER_CANCEL).build();
+    }
+
+    private long startTime;
+    private boolean isRunning;
+
+    @Scheduled(fixedRate = 1000)
+    public void errorCase1() {
+        if (!isRunning) {
+            startTime = System.currentTimeMillis(); // 실행 시작 시간 저장
+            isRunning = true;
+        }
+
+        long elapsedTime = System.currentTimeMillis() - startTime;
+
+        if (elapsedTime < 120000) { // 2분 동안만 실행 (120,000ms)
+            for(int i=0; i<100; i++) {
+                try {
+                    String result = productFeign.errorCase1();
+                    log.info("error case1: {}", result);
+                } catch (Exception ex) {
+                    log.error("Error calling errorCase1: {}", ex.getMessage());
+                }
+            }
+        } else {
+            // 2분이 지나면 스케줄러 중지
+            isRunning = false;
+            log.info("2 minutes have passed, stopping requests.");
+        }
     }
 }

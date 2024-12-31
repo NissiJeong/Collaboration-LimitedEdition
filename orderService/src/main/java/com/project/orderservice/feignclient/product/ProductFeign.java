@@ -2,6 +2,8 @@ package com.project.orderservice.feignclient.product;
 
 import com.project.orderservice.order.dto.OrderProductDto;
 import com.project.orderservice.order.dto.ProductDto;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,12 +25,18 @@ public interface ProductFeign {
     @PostMapping(value = "/api/product/bulk")
     List<ProductDto> getProductList(@RequestBody  List<ProductDto> productDtoList);
 
+    @Retry(name = "productFeign", fallbackMethod = "fallbackResponse")
+    @CircuitBreaker(name = "productFeign", fallbackMethod = "fallbackResponse")
     @GetMapping("/errorful/case1")
-    void errorCase1();
+    String errorCase1();
+
+    default String fallbackResponse(Exception ex) {
+        return "Fallback response due to: " + ex.getMessage();
+    }
 
     @GetMapping("/errorful/case2")
-    void errorCase2();
+    String errorCase2();
 
     @GetMapping("/errorful/case3")
-    void errorCase3();
+    String errorCase3();
 }
