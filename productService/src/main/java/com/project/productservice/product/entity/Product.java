@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Entity
 @NoArgsConstructor
@@ -25,6 +27,13 @@ public class Product {
     private String detailInfo;
 
     private int price;
+
+    @Column(length = 1)
+    private String eventYn;
+
+    private LocalDateTime startDate;
+
+    private LocalDateTime endDate;
 
     public Product(String productName, int stock, String imageUrl, String detailInfo, int price) {
         this.productName = productName;

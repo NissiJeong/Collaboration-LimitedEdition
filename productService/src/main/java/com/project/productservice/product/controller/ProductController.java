@@ -52,6 +52,18 @@ public class ProductController {
         return ResponseEntity.status(200).body(response);
     }
 
+    @GetMapping(value = "/detail/stock/{productId}")
+    public ResponseEntity<ResponseMessage> getProductDetailStock(@PathVariable Long productId) {
+        Integer productStock = productService.getProductDetailStock(productId);
+
+        ResponseMessage responseMessage = ResponseMessage.builder()
+                .data(productStock)
+                .statusCode(200)
+                .resultMessage("상품 수량 조회 성공").build();
+
+        return ResponseEntity.status(200).body(responseMessage);
+    }
+
     @GetMapping(value = "/{productId}")
     public ResponseEntity<?> getProduct(@PathVariable Long productId) {
         ProductDto responseDto = productService.getProductDetail(productId);

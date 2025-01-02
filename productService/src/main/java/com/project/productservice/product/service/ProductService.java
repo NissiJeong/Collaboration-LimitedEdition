@@ -87,4 +87,12 @@ public class ProductService {
                         .stock(product.getStock())
                         .detailInfo(product.getDetailInfo()).build()).toList();
     }
+
+    public Integer getProductDetailStock(Long productId) {
+        Product product = productRepository.findById(productId).orElseThrow(()->
+                new NullPointerException("해당 상품이 존재하지 않습니다.")
+        );
+
+        return product.getStock();
+    }
 }
