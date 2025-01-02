@@ -160,7 +160,7 @@ public class OrderService {
     private long startTime;
     private boolean isRunning;
 
-    @Scheduled(fixedRate = 1000)
+    //@Scheduled(fixedRate = 1000)
     public void errorCase1() {
         if (!isRunning) {
             startTime = System.currentTimeMillis(); // 실행 시작 시간 저장
