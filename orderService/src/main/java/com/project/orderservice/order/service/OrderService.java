@@ -15,13 +15,17 @@ import com.project.orderservice.order.repository.OrderRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.redisson.api.RedissonClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -32,9 +36,10 @@ public class OrderService {
     private final OrderProductRepository orderProductRepository;
     private final ProductFeign productFeign;
     private final PaymentFeign paymentFeign;
+    private final RedissonClient redissonClient;
 
     @Transactional
-    public OrderResponseDto saveOrder(OrderRequestDto orderRequestDto, HttpServletRequest request) {
+    public OrderResponseDto saveOrder(OrderRequestDto orderRequestDto, HttpServletRequest request) throws InterruptedException {
         // X-Claim-sub 헤더 값을 가져오기
         Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
         Long addressId = orderRequestDto.getAddressId();
@@ -51,9 +56,26 @@ public class OrderService {
             ProductDto productDto = productFeign.getProduct(orderProductDto.getProductId()).orElseThrow(() ->
                     new NullPointerException("해당 상품이 존재하지 않습니다.")
             );
+            Long productId = productDto.getProductId();
 
-            // TODO 각각의 상품에 대한 재고 관리 - kafka
-            productFeign.changeProductStockByOrder(orderProductDto.getProductId(), orderProductDto);
+            String lockKey = "lock:product:review:"+productId;
+            RLock lock = redissonClient.getLock(lockKey);
+            boolean available = false;
+
+            try{
+                available = lock.tryLock(10, 2, TimeUnit.SECONDS);
+
+                if(!available) {
+                    throw new IllegalArgumentException("Lock 획득 실패");
+                }
+                // TODO 각각의 상품에 대한 재고 관리 - kafka
+                productFeign.changeProductStockByOrder(productId, orderProductDto);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                if(available)
+                    lock.unlock();
+            }
 
             OrderProduct orderProduct = new OrderProduct(savedOrder, productDto, orderProductDto.getOrderQuantity());
             orderProducts.add(orderProduct);
@@ -61,7 +83,7 @@ public class OrderService {
         orderProductRepository.saveAll(orderProducts);
 
         // 결제 프로세스 진입
-        PaymentDto paymentDto = paymentFeign.registerPayment(OrderRequestDto.builder().orderId(savedOrder.getId()).userId(userId).build());
+        PaymentDto paymentDto = paymentFeign.registerPayment(userId, OrderRequestDto.builder().orderId(savedOrder.getId()).build());
 
         return OrderResponseDto.builder()
                 .orderId(savedOrder.getId())
@@ -89,10 +111,30 @@ public class OrderService {
             List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
             for(OrderProduct orderProduct : orderProducts) {
                 Long productId = orderProduct.getProductId();
-                // TODO 각각의 상품에 대한 재고 관리 - kafka
-                productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
-                        productId(productId).
-                        orderQuantity(orderProduct.getOrderQuantity()).build());
+                String lockKey = "lock:product:review:"+productId;
+                RLock lock = redissonClient.getLock(lockKey);
+                boolean available = false;
+
+                try{
+                    available = lock.tryLock(10, 1, TimeUnit.SECONDS);
+
+                    if(!available) {
+                        throw new IllegalArgumentException("Lock 획득 실패");
+                    }
+
+                    // TODO 각각의 상품에 대한 재고 관리 - kafka
+                    productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
+                            productId(productId).
+                            orderQuantity(orderProduct.getOrderQuantity()).build());
+
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    if(available)
+                        lock.unlock();
+                }
+
+
             }
 
             order.updateStats(OrderStatusEnum.REFUND_COMPLETE);
@@ -141,7 +183,7 @@ public class OrderService {
                 new NullPointerException("해당 배송상품은 취소할 수 없습니다.")
         );
 
-        if(order.getUserId() != userId) {
+        if(!Objects.equals(order.getUserId(), userId)) {
             throw new IllegalArgumentException("본인이 아닌 경우 배송상태 변경이 불가능 합니다.");
         }
 
@@ -149,10 +191,28 @@ public class OrderService {
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
         for(OrderProduct orderProduct : orderProducts) {
             Long productId = orderProduct.getProductId();
-            // TODO 각각의 상품에 대한 재고 관리 - kafka
-            productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
-                    productId(productId).
-                    orderQuantity(orderProduct.getOrderQuantity()).build());
+
+            String lockKey = "lock:product:review:"+productId;
+            RLock lock = redissonClient.getLock(lockKey);
+            boolean available = false;
+
+            try{
+                available = lock.tryLock(10, 1, TimeUnit.SECONDS);
+
+                if(!available) {
+                    throw new IllegalArgumentException("Lock 획득 실패");
+                }
+
+                // TODO 각각의 상품에 대한 재고 관리 - kafka
+                productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
+                        productId(productId).
+                        orderQuantity(orderProduct.getOrderQuantity()).build());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                if(available)
+                    lock.unlock();
+            }
         }
 
         // Order 상태 변경

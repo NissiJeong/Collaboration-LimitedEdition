@@ -17,7 +17,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<ResponseMessage> registerOrder(@RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) {
+    public ResponseEntity<ResponseMessage> registerOrder(@RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) throws InterruptedException {
         OrderResponseDto orderResponseDto = orderService.saveOrder(orderRequestDto, request);
 
         ResponseMessage response = ResponseMessage.builder()

@@ -49,6 +49,8 @@ dependencies {
     // Resilience4j
     implementation 'io.github.resilience4j:resilience4j-spring-boot2:2.0.2'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    implementation 'org.redisson:redisson-spring-boot-starter:3.39.0'
 }
 
 dependencyManagement {
