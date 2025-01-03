@@ -71,6 +71,9 @@ public class ProductService {
 
         product.changeStockByOrderQuantity(productDto.getOrderQuantity(), type);
 
+        String key = "product:"+product.getId()+":stock";
+        redisRepository.decrementData(key, productDto.getOrderQuantity());
+
         return ProductDto.builder()
                 .productId(product.getId())
                 .productName(product.getProductName())

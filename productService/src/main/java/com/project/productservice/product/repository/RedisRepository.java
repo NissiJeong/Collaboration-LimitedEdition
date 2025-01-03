@@ -36,4 +36,7 @@ public class RedisRepository {
         redisTemplate.delete(key);
     }
 
+    public void decrementData(String key, int orderQuantity) {
+        redisTemplate.opsForValue().decrement(key, orderQuantity);
+    }
 }
