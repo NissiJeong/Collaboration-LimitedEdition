@@ -27,10 +27,10 @@ public class Order extends Timestamped {
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
-    public Order(Long userId, Long addressId) {
+    public Order(Long userId, Long addressId, OrderStatusEnum orderStatus) {
         this.userId = userId;
         this.addressId = addressId;
-        this.orderStatus = OrderStatusEnum.ORDER_COMPLETE;
+        this.orderStatus = orderStatus;
     }
 
     public void updateStats(OrderStatusEnum orderStatus) {

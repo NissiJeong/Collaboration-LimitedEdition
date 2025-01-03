@@ -1,5 +1,7 @@
 package com.project.orderservice.order.service;
 
+import com.project.orderservice.feignclient.dto.PaymentDto;
+import com.project.orderservice.feignclient.payment.PaymentFeign;
 import com.project.orderservice.feignclient.product.ProductFeign;
 import com.project.orderservice.order.dto.OrderProductDto;
 import com.project.orderservice.order.dto.OrderRequestDto;
@@ -29,6 +31,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
     private final ProductFeign productFeign;
+    private final PaymentFeign paymentFeign;
 
     @Transactional
     public OrderResponseDto saveOrder(OrderRequestDto orderRequestDto, HttpServletRequest request) {
@@ -36,8 +39,8 @@ public class OrderService {
         Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
         Long addressId = orderRequestDto.getAddressId();
 
-        // 1. Order 등록
-        Order savedOrder = orderRepository.save(new Order(userId, addressId));
+        // 1. Order 등록(주문 진행 중)
+        Order savedOrder = orderRepository.save(new Order(userId, addressId, OrderStatusEnum.IN_PROGRESS));
 
         // 2. Order Product 등록
         // 2-1. Product id 로 Product 정보 가져오기
@@ -56,6 +59,9 @@ public class OrderService {
             orderProducts.add(orderProduct);
         }
         orderProductRepository.saveAll(orderProducts);
+
+        // 결제 프로세스 진입
+        PaymentDto paymentDto = paymentFeign.registerPayment(OrderRequestDto.builder().orderId(savedOrder.getId()).userId(userId).build());
 
         return OrderResponseDto.builder()
                 .orderId(savedOrder.getId())

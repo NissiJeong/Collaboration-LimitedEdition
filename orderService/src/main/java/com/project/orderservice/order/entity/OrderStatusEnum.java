@@ -2,6 +2,7 @@ package com.project.orderservice.order.entity;
 
 public enum OrderStatusEnum {
     //주문완료, 배송중, 배송완료, 환불중, 환불완료
+    IN_PROGRESS(OrderStatus.IN_PROGRESS),
     ORDER_COMPLETE(OrderStatus.ORDER_COMPLETE),
     ORDER_CANCEL(OrderStatus.ORDER_CANCEL),
     IN_DELIVERY(OrderStatus.IN_DELIVERY),
@@ -20,6 +21,7 @@ public enum OrderStatusEnum {
     }
 
     public static class OrderStatus {
+        public static final String IN_PROGRESS = "ORDER_IN_PROGRESS";
         public static final String ORDER_COMPLETE = "ORDER_COMPLETE";
         public static final String ORDER_CANCEL = "ORDER_CANCEL_COMPLETE";
         public static final String IN_DELIVERY = "IN_DELIVERY";
