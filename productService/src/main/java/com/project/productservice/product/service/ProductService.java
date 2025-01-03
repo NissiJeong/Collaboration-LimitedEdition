@@ -3,6 +3,7 @@ package com.project.productservice.product.service;
 import com.project.productservice.product.dto.ProductDto;
 import com.project.productservice.product.entity.Product;
 import com.project.productservice.product.repository.ProductRepository;
+import com.project.productservice.product.repository.RedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,12 +15,18 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final RedisRepository redisRepository;
 
     public ProductDto saveProduct(ProductDto requestDto) {
         Product product = new Product(requestDto.getProductName(), requestDto.getStock(), requestDto.getImageUrl(), requestDto.getDetailInfo(),requestDto.getPrice());
 
         // 상품 저장
         Product savedProduct = productRepository.save(product);
+
+        // 상품 재고 Redis 에 저장
+        String key = "product:"+savedProduct.getId()+":stock";
+        int stock = savedProduct.getStock();
+        redisRepository.saveData(key, String.valueOf(stock));
 
         return ProductDto.builder()
                 .productId(savedProduct.getId())
@@ -89,10 +96,21 @@ public class ProductService {
     }
 
     public Integer getProductDetailStock(Long productId) {
-        Product product = productRepository.findById(productId).orElseThrow(()->
-                new NullPointerException("해당 상품이 존재하지 않습니다.")
-        );
+        // redis 에서 수량 읽어오기(캐싱)
+        String key = "product:"+productId+":stock";
+        String stockString = redisRepository.getData(key);
+        int stock = 0;
 
-        return product.getStock();
+        // redis 에 수량 존재하지 않으면 MySQL 에서 읽어온 후 redis 에 다시 저장
+        if(stockString == null) {
+            Product product = productRepository.findById(productId).orElseThrow(()->
+                    new NullPointerException("해당 상품이 존재하지 않습니다.")
+            );
+
+            stock = product.getStock();
+            redisRepository.saveData(key, String.valueOf(product.getStock()));
+        }
+
+        return stock;
     }
 }
