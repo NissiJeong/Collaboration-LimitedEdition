@@ -27,4 +27,8 @@ public class Payment {
         this.userId =  userId;
         this.status = status;
     }
+
+    public void changeStatus(PaymentStatusEnum status) {
+        this.status = status;
+    }
 }
