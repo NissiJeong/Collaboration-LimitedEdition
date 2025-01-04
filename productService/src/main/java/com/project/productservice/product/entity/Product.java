@@ -1,5 +1,6 @@
 package com.project.productservice.product.entity;
 
+import com.project.productservice.product.dto.ProductDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,16 +32,23 @@ public class Product {
     @Column(length = 1)
     private String eventYn;
 
+    @Column(length = 1)
+    private String openYn;
+
     private LocalDateTime startDate;
 
     private LocalDateTime endDate;
 
-    public Product(String productName, int stock, String imageUrl, String detailInfo, int price) {
-        this.productName = productName;
-        this.stock = stock;
-        this.imageUrl = imageUrl;
-        this.detailInfo = detailInfo;
-        this.price = price;
+    public Product(ProductDto productDto) {
+        this.productName = productDto.getProductName();
+        this.stock = productDto.getStock();
+        this.imageUrl = productDto.getImageUrl();
+        this.detailInfo = productDto.getDetailInfo();
+        this.price = productDto.getPrice();
+        this.eventYn = productDto.getEventYn();
+        this.startDate = productDto.getStartDate();
+        this.endDate = productDto.getEndDate();
+        this.openYn = "N";
     }
 
     public void changeStockByOrderQuantity(int orderQuantity, String type) {
@@ -50,5 +58,9 @@ public class Product {
         else if(type.equals("plus")) {
             stock += orderQuantity;
         }
+    }
+
+    public void openEventProduct(String openYn) {
+        this.openYn = openYn;
     }
 }

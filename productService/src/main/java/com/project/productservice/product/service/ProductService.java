@@ -5,9 +5,11 @@ import com.project.productservice.product.entity.Product;
 import com.project.productservice.product.repository.ProductRepository;
 import com.project.productservice.product.repository.RedisRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -18,7 +20,7 @@ public class ProductService {
     private final RedisRepository redisRepository;
 
     public ProductDto saveProduct(ProductDto requestDto) {
-        Product product = new Product(requestDto.getProductName(), requestDto.getStock(), requestDto.getImageUrl(), requestDto.getDetailInfo(),requestDto.getPrice());
+        Product product = new Product(requestDto);
 
         // 상품 저장
         Product savedProduct = productRepository.save(product);
@@ -36,8 +38,13 @@ public class ProductService {
                 .detailInfo(savedProduct.getDetailInfo()).build();
     }
 
-    public List<ProductDto> getProductList() {
-        List<Product> productList = productRepository.findAll();
+    public List<ProductDto> getProductList(String eventYn) {
+        List<Product> productList = null;
+
+        if("N".equals(eventYn))
+            productList = productRepository.findAll();
+        else
+            productList = productRepository.findAllByEventYn(eventYn);
 
         return productList.stream().map(product ->
                 ProductDto.builder()
@@ -115,5 +122,17 @@ public class ProductService {
         }
 
         return stock;
+    }
+
+    @Scheduled(cron = "0 16 15 * * *")
+    @Transactional
+    public void eventProductOpen() {
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);;
+        List<Product> productList = productRepository.findAllByStartDateAndEventYn(now, "Y");
+        if(productList != null && !productList.isEmpty()) {
+            for(Product product : productList) {
+                product.openEventProduct("Y");
+            }
+        }
     }
 }

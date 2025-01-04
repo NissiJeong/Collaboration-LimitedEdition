@@ -30,12 +30,24 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<ResponseMessage> getProductList() {
-        List<ProductDto> responseDtoList = productService.getProductList();
+        List<ProductDto> responseDtoList = productService.getProductList("N");
 
         ResponseMessage response = ResponseMessage.builder()
                 .data(responseDtoList)
                 .statusCode(200)
-                .resultMessage("상품 목록 조회 성공").build();
+                .resultMessage("일반 상품 목록 조회 성공").build();
+
+        return ResponseEntity.status(200).body(response);
+    }
+
+    @GetMapping(value = "/event")
+    public ResponseEntity<ResponseMessage> getEvenetProductList() {
+        List<ProductDto> responseDtoList = productService.getProductList("Y");
+
+        ResponseMessage response = ResponseMessage.builder()
+                .data(responseDtoList)
+                .statusCode(200)
+                .resultMessage("이벤트 상품 목록 조회 성공").build();
 
         return ResponseEntity.status(200).body(response);
     }
