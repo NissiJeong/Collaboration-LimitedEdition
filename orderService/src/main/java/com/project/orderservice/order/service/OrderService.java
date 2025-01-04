@@ -58,7 +58,7 @@ public class OrderService {
             );
             Long productId = productDto.getProductId();
 
-            String lockKey = "lock:product:review:"+productId;
+            String lockKey = "lock:product:"+productId+":stock";
             RLock lock = redissonClient.getLock(lockKey);
             boolean available = false;
 
@@ -111,7 +111,7 @@ public class OrderService {
             List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
             for(OrderProduct orderProduct : orderProducts) {
                 Long productId = orderProduct.getProductId();
-                String lockKey = "lock:product:review:"+productId;
+                String lockKey = "lock:product:"+productId+":stock";
                 RLock lock = redissonClient.getLock(lockKey);
                 boolean available = false;
 
@@ -192,7 +192,7 @@ public class OrderService {
         for(OrderProduct orderProduct : orderProducts) {
             Long productId = orderProduct.getProductId();
 
-            String lockKey = "lock:product:review:"+productId;
+            String lockKey = "lock:product:"+productId+":stock";
             RLock lock = redissonClient.getLock(lockKey);
             boolean available = false;
 
