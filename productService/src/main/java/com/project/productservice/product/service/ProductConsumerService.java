@@ -1,6 +1,5 @@
 package com.project.productservice.product.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.common.dto.KafkaMessage;
 import com.project.productservice.product.dto.ProductDto;
 import lombok.RequiredArgsConstructor;
