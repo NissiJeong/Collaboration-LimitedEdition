@@ -19,8 +19,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
-    public PaymentResponseDto savePayment(PaymentRequestDto requestDto, HttpServletRequest request) {
-        Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
+    public PaymentResponseDto savePayment(PaymentRequestDto requestDto, Long userId) {
         Payment payment = paymentRepository.save(new Payment(requestDto, userId, PaymentStatusEnum.IN_PROGRESS));
 
         return PaymentResponseDto.builder()

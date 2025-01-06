@@ -26,7 +26,8 @@ public class PaymentController {
      */
     @PostMapping
     public ResponseEntity<?> registerPayment(@RequestBody PaymentRequestDto requestDto, HttpServletRequest request) {
-        PaymentResponseDto responseDto = paymentService.savePayment(requestDto, request);
+        Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
+        PaymentResponseDto responseDto = paymentService.savePayment(requestDto, userId);
 
         ResponseMessage responseMessage = ResponseMessage.builder()
                 .statusCode(200)

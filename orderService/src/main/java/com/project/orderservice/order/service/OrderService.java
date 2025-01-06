@@ -58,38 +58,19 @@ public class OrderService {
             ProductDto productDto = productFeign.getProduct(orderProductDto.getProductId()).orElseThrow(() ->
                     new NullPointerException("해당 상품이 존재하지 않습니다.")
             );
-            /*
-            Long productId = productDto.getProductId();
-
-            String lockKey = "lock:product:"+productId+":stock";
-            RLock lock = redissonClient.getLock(lockKey);
-            boolean available = false;
-
-            try{
-                available = lock.tryLock(10, 2, TimeUnit.SECONDS);
-
-                if(!available) {
-                    throw new IllegalArgumentException("Lock 획득 실패");
-                }
-                // TODO 각각의 상품에 대한 재고 관리 - kafka
-                productFeign.changeProductStockByOrder(productId, orderProductDto);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if(available)
-                    lock.unlock();
-            }
-             */
 
             OrderProduct orderProduct = new OrderProduct(savedOrder, productDto, orderProductDto.getOrderQuantity());
             orderProducts.add(orderProduct);
         }
         orderProductRepository.saveAll(orderProducts);
 
-        orderProducerService.sendMessage("order-topic", new KafkaMessage<>("order", orderRequestDto));
-
-        // 결제 프로세스 진입
-        PaymentDto paymentDto = paymentFeign.registerPayment(userId, OrderRequestDto.builder().orderId(savedOrder.getId()).build());
+        // 주문 생성 이벤트 발생 -> 상품 서비스, 결제 서비스 각각 이벤트 처리
+        orderProducerService.sendMessage(
+                "order-topic",
+                new KafkaMessage<>("order_create", OrderRequestDto.builder()
+                        .orderId(savedOrder.getId())
+                        .orderProductDtoList(orderRequestDto.getOrderProductDtoList()).build()),
+                userId);
 
         return OrderResponseDto.builder()
                 .orderId(savedOrder.getId())
