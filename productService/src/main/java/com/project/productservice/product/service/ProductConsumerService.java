@@ -25,11 +25,9 @@ public class ProductConsumerService {
         KafkaMessage<?> message = record.value();
 
         // 메시지 헤더 읽기
-        Header userIdHeader = record.headers().lastHeader("X-Claim-sub");
         Header timestampHeader = record.headers().lastHeader("timestamp");
 
         // 헤더 값이 존재하면 String으로 변환
-        String userId = (userIdHeader != null) ? new String(userIdHeader.value()) : null;
         String timestamp = (timestampHeader != null) ? new String(timestampHeader.value()) : null;
 
         log.info("kafka message consume: {}",timestamp);
