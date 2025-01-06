@@ -5,12 +5,15 @@ import com.project.productservice.product.entity.Product;
 import com.project.productservice.product.repository.ProductRepository;
 import com.project.productservice.product.repository.RedisRepository;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.redisson.api.RedissonClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final RedisRepository redisRepository;
+    private final RedissonClient redissonClient;
 
     public ProductDto saveProduct(ProductDto requestDto) {
         Product product = new Product(requestDto);
@@ -72,22 +76,40 @@ public class ProductService {
 
     @Transactional
     public ProductDto changeProductStockByOrder(Long productId, ProductDto productDto, String type) {
-        Product product = productRepository.findById(productId).orElseThrow(()->
-                new NullPointerException("해당 상품이 존재하지 않습니다.")
-        );
+        String lockKey = "lock:product:"+productId+":stock";
+        RLock lock = redissonClient.getLock(lockKey);
+        boolean available = false;
 
-        product.changeStockByOrderQuantity(productDto.getOrderQuantity(), type);
+        try{
+            available = lock.tryLock(10, 2, TimeUnit.SECONDS);
 
-        String key = "product:"+product.getId()+":stock";
-        redisRepository.decrementData(key, productDto.getOrderQuantity());
+            if(!available) {
+                throw new IllegalArgumentException("Lock 획득 실패");
+            }
 
-        return ProductDto.builder()
-                .productId(product.getId())
-                .productName(product.getProductName())
-                .stock(product.getStock())
-                .imageUrl(product.getImageUrl())
-                .price(product.getPrice())
-                .detailInfo(product.getDetailInfo()).build();
+            Product product = productRepository.findById(productId).orElseThrow(()->
+                    new NullPointerException("해당 상품이 존재하지 않습니다.")
+            );
+
+            product.changeStockByOrderQuantity(productDto.getOrderQuantity(), type);
+
+            String key = "product:"+product.getId()+":stock";
+            redisRepository.decrementData(key, productDto.getOrderQuantity());
+
+            return ProductDto.builder()
+                    .productId(product.getId())
+                    .productName(product.getProductName())
+                    .stock(product.getStock())
+                    .imageUrl(product.getImageUrl())
+                    .price(product.getPrice())
+                    .detailInfo(product.getDetailInfo()).build();
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(available)
+                lock.unlock();
+        }
     }
 
     public List<ProductDto> getProductList(List<ProductDto> productDtoList) {
