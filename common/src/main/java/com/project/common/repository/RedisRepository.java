@@ -1,4 +1,4 @@
-package com.project.productservice.product.repository;
+package com.project.common.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,5 +38,9 @@ public class RedisRepository {
 
     public void decrementData(String key, int orderQuantity) {
         redisTemplate.opsForValue().decrement(key, orderQuantity);
+    }
+
+    public void incrementData(String key, int orderQuantity) {
+        redisTemplate.opsForValue().increment(key, orderQuantity);
     }
 }

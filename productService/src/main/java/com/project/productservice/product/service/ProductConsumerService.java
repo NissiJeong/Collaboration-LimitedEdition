@@ -33,8 +33,8 @@ public class ProductConsumerService {
         log.info("kafka message consume: {}",timestamp);
 
         String type = message.getType();
+        Map<String, Object> data = (Map<String, Object>) message.getData();
         if("order_create".equals(type)) {
-            Map<String, Object> data = (Map<String, Object>) message.getData();
             List<Map<String, Object>> orderProductDtoList = (List<Map<String, Object>>) data.get("orderProductDtoList");
 
             for(Map<String, Object> product : orderProductDtoList) {
@@ -42,6 +42,16 @@ public class ProductConsumerService {
                 int orderQuantity = Integer.parseInt(product.get("orderQuantity").toString());
 
                 productService.changeProductStockByOrder(productId, ProductDto.builder().orderQuantity(orderQuantity).build(), "minus");
+            }
+        }
+        else if("order_cancel".equals(type)) {
+            List<Map<String, Object>> orderProductDtoList = (List<Map<String, Object>>) data.get("orderProductDtoList");
+
+            for(Map<String, Object> product : orderProductDtoList) {
+                Long productId = Long.parseLong(product.get("productId").toString());
+                int orderQuantity = Integer.parseInt(product.get("orderQuantity").toString());
+
+                productService.changeProductStockByOrder(productId, ProductDto.builder().orderQuantity(orderQuantity).build(), "plus");
             }
         }
     }

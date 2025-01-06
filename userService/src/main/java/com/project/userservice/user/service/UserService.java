@@ -1,11 +1,11 @@
 package com.project.userservice.user.service;
 
 import com.project.common.exception.BizRuntimeException;
+import com.project.common.repository.RedisRepository;
 import com.project.userservice.jwt.JwtUtil;
 import com.project.userservice.user.dto.UserDto;
 import com.project.userservice.user.entity.User;
 import com.project.userservice.user.entity.UserRoleEnum;
-import com.project.userservice.user.repository.RedisRepository;
 import com.project.userservice.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

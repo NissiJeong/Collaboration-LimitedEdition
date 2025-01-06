@@ -1,6 +1,6 @@
 package com.project.userservice.user.service;
 
-import com.project.userservice.user.repository.RedisRepository;
+import com.project.common.repository.RedisRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

@@ -1,9 +1,9 @@
 package com.project.productservice.product.service;
 
+import com.project.common.repository.RedisRepository;
 import com.project.productservice.product.dto.ProductDto;
 import com.project.productservice.product.entity.Product;
 import com.project.productservice.product.repository.ProductRepository;
-import com.project.productservice.product.repository.RedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -94,7 +94,10 @@ public class ProductService {
             product.changeStockByOrderQuantity(productDto.getOrderQuantity(), type);
 
             String key = "product:"+product.getId()+":stock";
-            redisRepository.decrementData(key, productDto.getOrderQuantity());
+            if("minus".equals(type))
+                redisRepository.decrementData(key, productDto.getOrderQuantity());
+            else
+                redisRepository.incrementData(key, productDto.getOrderQuantity());
 
             return ProductDto.builder()
                     .productId(product.getId())
@@ -142,6 +145,8 @@ public class ProductService {
             stock = product.getStock();
             redisRepository.saveData(key, String.valueOf(product.getStock()));
         }
+        else
+            stock = Integer.parseInt(stockString);
 
         return stock;
     }

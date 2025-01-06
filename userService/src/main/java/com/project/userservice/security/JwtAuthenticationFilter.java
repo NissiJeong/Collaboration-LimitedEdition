@@ -1,11 +1,11 @@
 package com.project.userservice.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.common.repository.RedisRepository;
 import com.project.userservice.jwt.JwtUtil;
 import com.project.userservice.user.dto.LoginDto;
 import com.project.userservice.user.entity.User;
 import com.project.userservice.user.entity.UserRoleEnum;
-import com.project.userservice.user.repository.RedisRepository;
 import com.project.userservice.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;

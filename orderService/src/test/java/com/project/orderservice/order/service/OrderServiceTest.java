@@ -1,13 +1,9 @@
 package com.project.orderservice.order.service;
 
-import com.project.orderservice.feignclient.payment.PaymentFeign;
 import com.project.orderservice.feignclient.product.ProductFeign;
 import com.project.orderservice.order.dto.OrderProductDto;
 import com.project.orderservice.order.dto.OrderRequestDto;
 import com.project.orderservice.order.dto.ProductDto;
-import com.project.orderservice.order.repository.OrderProductRepository;
-import com.project.orderservice.order.repository.OrderRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,20 +16,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 class OrderServiceTest {
     @Autowired
     private OrderService orderService;
-    @Autowired
-    private OrderRepository orderRepository;
-    @Autowired
-    private OrderProductRepository orderProductRepository;
+
     @Autowired
     private ProductFeign productFeign;
-    @Autowired
-    private PaymentFeign paymentFeign;
+
 
     @Test
     @DisplayName("동시에 100개 상품 구매 요청")

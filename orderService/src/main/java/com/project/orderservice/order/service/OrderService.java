@@ -1,8 +1,6 @@
 package com.project.orderservice.order.service;
 
 import com.project.common.dto.KafkaMessage;
-import com.project.orderservice.feignclient.dto.PaymentDto;
-import com.project.orderservice.feignclient.payment.PaymentFeign;
 import com.project.orderservice.feignclient.product.ProductFeign;
 import com.project.orderservice.order.dto.OrderProductDto;
 import com.project.orderservice.order.dto.OrderRequestDto;
@@ -16,17 +14,14 @@ import com.project.orderservice.order.repository.OrderRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.redisson.api.RedissonClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -36,8 +31,6 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
     private final ProductFeign productFeign;
-    private final PaymentFeign paymentFeign;
-    private final RedissonClient redissonClient;
     private final OrderProducerService orderProducerService;
 
     @Transactional
@@ -58,6 +51,9 @@ public class OrderService {
             ProductDto productDto = productFeign.getProduct(orderProductDto.getProductId()).orElseThrow(() ->
                     new NullPointerException("해당 상품이 존재하지 않습니다.")
             );
+
+            // TODO 주문 시에 해당 상품의 개수를 체크하여 재고 없으면 주문 안되게 처리
+            String key = "product:"+orderProductDto.getProductId()+":stock";
 
             OrderProduct orderProduct = new OrderProduct(savedOrder, productDto, orderProductDto.getOrderQuantity());
             orderProducts.add(orderProduct);
@@ -96,33 +92,18 @@ public class OrderService {
         for(Order order : orders) {
             // Order 안에 있는 Product 들 quantity 돌려놓기
             List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
-            for(OrderProduct orderProduct : orderProducts) {
-                Long productId = orderProduct.getProductId();
-                String lockKey = "lock:product:"+productId+":stock";
-                RLock lock = redissonClient.getLock(lockKey);
-                boolean available = false;
 
-                try{
-                    available = lock.tryLock(10, 1, TimeUnit.SECONDS);
-
-                    if(!available) {
-                        throw new IllegalArgumentException("Lock 획득 실패");
-                    }
-
-                    // TODO 각각의 상품에 대한 재고 관리 - kafka
-                    productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
-                            productId(productId).
-                            orderQuantity(orderProduct.getOrderQuantity()).build());
-
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    if(available)
-                        lock.unlock();
-                }
-
-
-            }
+            // 주문 생성 이벤트 발생 -> 상품 서비스, 결제 서비스 각각 이벤트 처리
+            orderProducerService.sendMessage(
+                    "order-topic",
+                    new KafkaMessage<>("order_cancel", OrderRequestDto.builder()
+                            .orderId(order.getId())
+                            .orderProductDtoList(
+                                    orderProducts.stream().map(
+                                            orderProduct -> OrderProductDto.builder()
+                                                    .productId(orderProduct.getProductId())
+                                                    .orderQuantity(orderProduct.getOrderQuantity()).build()).toList()).build()),
+                    null);
 
             order.updateStats(OrderStatusEnum.REFUND_COMPLETE);
         }
@@ -176,31 +157,17 @@ public class OrderService {
 
         // Order 안에 있는 Product 들 quantity 돌려놓기
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
-        for(OrderProduct orderProduct : orderProducts) {
-            Long productId = orderProduct.getProductId();
-
-            String lockKey = "lock:product:"+productId+":stock";
-            RLock lock = redissonClient.getLock(lockKey);
-            boolean available = false;
-
-            try{
-                available = lock.tryLock(10, 1, TimeUnit.SECONDS);
-
-                if(!available) {
-                    throw new IllegalArgumentException("Lock 획득 실패");
-                }
-
-                // TODO 각각의 상품에 대한 재고 관리 - kafka
-                productFeign.plusProductStockByOrderCancel(productId, OrderProductDto.builder().
-                        productId(productId).
-                        orderQuantity(orderProduct.getOrderQuantity()).build());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if(available)
-                    lock.unlock();
-            }
-        }
+        // 주문 생성 이벤트 발생 -> 상품 서비스, 결제 서비스 각각 이벤트 처리
+        orderProducerService.sendMessage(
+                "order-topic",
+                new KafkaMessage<>("order_cancel", OrderRequestDto.builder()
+                        .orderId(orderId)
+                        .orderProductDtoList(
+                                orderProducts.stream().map(
+                                    orderProduct -> OrderProductDto.builder()
+                                            .productId(orderProduct.getProductId())
+                                            .orderQuantity(orderProduct.getOrderQuantity()).build()).toList()).build()),
+                userId);
 
         // Order 상태 변경
         order.updateStats(OrderStatusEnum.ORDER_CANCEL);

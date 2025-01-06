@@ -36,7 +36,7 @@ public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
             log.info("Authorization Header: {}", request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
             log.info("Response status code: {}", response.getStatusCode());
             // 특정 경로 필터 제외
-            if (path.startsWith("/api/user") || path.equals("/health") || path.equals("/api/product")) {
+            if (path.startsWith("/api/user") || path.equals("/health") || path.startsWith("/api/product")) {
                 log.info("path: {}",path);
                 return chain.filter(exchange); // 필터를 타지 않고 다음 체인으로 전달
             }

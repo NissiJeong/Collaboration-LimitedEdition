@@ -1,9 +1,9 @@
 package com.project.userservice.config;
 
+import com.project.common.repository.RedisRepository;
 import com.project.userservice.jwt.JwtUtil;
 import com.project.userservice.security.JwtAuthenticationFilter;
 import com.project.userservice.security.UserDetailsServiceImpl;
-import com.project.userservice.user.repository.RedisRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -24,16 +24,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig {
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final RedisRepository redisRepository;
 
     @Value("${aes.secret.key}")
     private String aesSecretKey;
 
-    public WebSecurityConfig(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, AuthenticationConfiguration authenticationConfiguration, RedisRepository redisRepository) {
+    public WebSecurityConfig(JwtUtil jwtUtil, AuthenticationConfiguration authenticationConfiguration, RedisRepository redisRepository) {
         this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
         this.authenticationConfiguration = authenticationConfiguration;
         this.redisRepository = redisRepository;
     }
@@ -60,11 +58,6 @@ public class WebSecurityConfig {
         return filter;
     }
 
-//    @Bean
-//    public JwtAuthorizationFilter jwtAuthorizationFilter() {
-//        return new JwtAuthorizationFilter(jwtUtil, userDetailsService, aesBytesEncryptor());
-//    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // CSRF 설정
@@ -85,7 +78,6 @@ public class WebSecurityConfig {
         );
 
         // 필터 관리
-        // http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
