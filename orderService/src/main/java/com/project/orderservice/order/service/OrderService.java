@@ -1,5 +1,6 @@
 package com.project.orderservice.order.service;
 
+import com.project.common.dto.KafkaMessage;
 import com.project.orderservice.feignclient.dto.PaymentDto;
 import com.project.orderservice.feignclient.payment.PaymentFeign;
 import com.project.orderservice.feignclient.product.ProductFeign;
@@ -37,6 +38,7 @@ public class OrderService {
     private final ProductFeign productFeign;
     private final PaymentFeign paymentFeign;
     private final RedissonClient redissonClient;
+    private final OrderProducerService orderProducerService;
 
     @Transactional
     public OrderResponseDto saveOrder(OrderRequestDto orderRequestDto, HttpServletRequest request) throws InterruptedException {
@@ -56,6 +58,7 @@ public class OrderService {
             ProductDto productDto = productFeign.getProduct(orderProductDto.getProductId()).orElseThrow(() ->
                     new NullPointerException("해당 상품이 존재하지 않습니다.")
             );
+            /*
             Long productId = productDto.getProductId();
 
             String lockKey = "lock:product:"+productId+":stock";
@@ -76,11 +79,14 @@ public class OrderService {
                 if(available)
                     lock.unlock();
             }
+             */
 
             OrderProduct orderProduct = new OrderProduct(savedOrder, productDto, orderProductDto.getOrderQuantity());
             orderProducts.add(orderProduct);
         }
         orderProductRepository.saveAll(orderProducts);
+
+        orderProducerService.sendMessage("order-topic", new KafkaMessage<>("order", orderRequestDto));
 
         // 결제 프로세스 진입
         PaymentDto paymentDto = paymentFeign.registerPayment(userId, OrderRequestDto.builder().orderId(savedOrder.getId()).build());
