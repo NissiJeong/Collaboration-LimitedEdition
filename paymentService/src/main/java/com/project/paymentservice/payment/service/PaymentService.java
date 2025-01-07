@@ -1,5 +1,7 @@
 package com.project.paymentservice.payment.service;
 
+import com.project.common.dto.KafkaMessage;
+import com.project.common.repository.RedisRepository;
 import com.project.paymentservice.payment.dto.PaymentRequestDto;
 import com.project.paymentservice.payment.dto.PaymentResponseDto;
 import com.project.paymentservice.payment.entity.Payment;
@@ -18,6 +20,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final PaymentProducerService producerService;
+    private final RedisRepository redisRepository;
 
     public PaymentResponseDto savePayment(PaymentRequestDto requestDto, Long userId) {
         Payment payment = paymentRepository.save(new Payment(requestDto, userId, PaymentStatusEnum.IN_PROGRESS));
@@ -29,20 +33,42 @@ public class PaymentService {
     }
 
     public PaymentResponseDto completePayment(Long paymentId, HttpServletRequest request) {
-        // 20% 확률로 결제 취소
-        if (ThreadLocalRandom.current().nextInt(100) < 20) {
-            // TODO 해당 주문에 대한 상품 재고 복구 로직 추가
-            return PaymentResponseDto.builder().paymentId(paymentId).status(PaymentStatusEnum.FAIL).build();
-        }
-
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(()->
                 new NullPointerException("해당 결제 정보가 없습니다.")
         );
 
+        // 20% 확률로 결제 취소
+        if (ThreadLocalRandom.current().nextInt(100) < 20) {
+            // 결제 취소 이벤트 발생: order service 주문 취소, product service 재고 복구
+            producerService.sendMessage(
+                    "payment-topic",
+                    new KafkaMessage<>(
+                            "payment_cancel",
+                            PaymentRequestDto.builder()
+                                    .orderId(payment.getOrderId())
+                                    .paymentId(payment.getId()).build()
+                    ),
+                    null
+            );
+            return PaymentResponseDto.builder().paymentId(paymentId).status(PaymentStatusEnum.FAIL).build();
+        }
+
+        // Redis 에 있는 예약 내역 만료 시간 연장(정상 결제 위해서)
+        String key = "reservation:order:"+payment.getOrderId();
+        redisRepository.extendExpire(key, 10);
+
+        // 결제 상태값 업데이트: 결제 완료
         payment.changeStatus(PaymentStatusEnum.COMPLETE);
 
-        // TODO 해당 결제와 연결된 Order 결제 완료 요청
-
+        // 결제 완료 이벤트 발생: order service 주문 완료, Product service 재고 감소
+        producerService.sendMessage(
+                "payment-topic",
+                new KafkaMessage<>(
+                        "payment_complete",
+                        PaymentRequestDto.builder()
+                                .paymentId(payment.getId())
+                                .orderId(payment.getOrderId()).build()),
+                null);
 
         return PaymentResponseDto.builder()
                 .paymentId(payment.getId())

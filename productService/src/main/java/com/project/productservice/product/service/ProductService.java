@@ -1,6 +1,7 @@
 package com.project.productservice.product.service;
 
 import com.project.common.repository.RedisRepository;
+import com.project.productservice.product.dto.PaymentOrderDto;
 import com.project.productservice.product.dto.ProductDto;
 import com.project.productservice.product.entity.Product;
 import com.project.productservice.product.repository.ProductRepository;
@@ -65,10 +66,13 @@ public class ProductService {
                 new NullPointerException("해당 상품이 존재하지 않습니다.")
         );
 
+        String key = "product:"+product.getId()+":stock";
+        int stock = Integer.parseInt(redisRepository.getData(key));
+
         return ProductDto.builder()
                 .productId(product.getId())
                 .productName(product.getProductName())
-                .stock(product.getStock())
+                .stock(stock)
                 .imageUrl(product.getImageUrl())
                 .price(product.getPrice())
                 .detailInfo(product.getDetailInfo()).build();
@@ -77,11 +81,12 @@ public class ProductService {
     @Transactional
     public ProductDto changeProductStockByOrder(Long productId, ProductDto productDto, String type) {
         String lockKey = "lock:product:"+productId+":stock";
-        RLock lock = redissonClient.getLock(lockKey);
+        // 락 획득 순서를 공평하게 보장하는 fairLock 사용, 먼저 락을 요청한 쓰레드가 먼저 락 획득.
+        RLock fairLock = redissonClient.getFairLock(lockKey);
         boolean available = false;
 
         try{
-            available = lock.tryLock(10, 2, TimeUnit.SECONDS);
+            available = fairLock.tryLock(10, 5, TimeUnit.SECONDS);
 
             if(!available) {
                 throw new IllegalArgumentException("Lock 획득 실패");
@@ -94,10 +99,10 @@ public class ProductService {
             product.changeStockByOrderQuantity(productDto.getOrderQuantity(), type);
 
             String key = "product:"+product.getId()+":stock";
-            if("minus".equals(type))
-                redisRepository.decrementData(key, productDto.getOrderQuantity());
-            else
+            if("plus".equals(type))
                 redisRepository.incrementData(key, productDto.getOrderQuantity());
+//            else // 레디스 재고 감소는 예약 시에만
+//                redisRepository.decrementData(key, productDto.getOrderQuantity());
 
             return ProductDto.builder()
                     .productId(product.getId())
@@ -110,8 +115,9 @@ public class ProductService {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            if(available)
-                lock.unlock();
+            // 락이 이용가능한 상태이고 현재 스레드가 점유하고 있으면 unlock
+            if(available && fairLock.isHeldByCurrentThread())
+                fairLock.unlock();
         }
     }
 
@@ -159,6 +165,91 @@ public class ProductService {
         if(productList != null && !productList.isEmpty()) {
             for(Product product : productList) {
                 product.openEventProduct("Y");
+            }
+        }
+    }
+
+    @Transactional
+    public void changeProductStockByPayment(PaymentOrderDto paymentOrderDto, String type) {
+        Long orderId = paymentOrderDto.getOrderId();
+        String key = "reservation:order:"+orderId;
+        List<String> productList = redisRepository.getEntireList(key);
+
+        if(productList == null || productList.isEmpty())
+            throw new IllegalArgumentException("해당 예약 내역이 없습니다.");
+
+        for(String productKey : productList) {
+            Long productId = Long.parseLong(productKey.split(":")[1]);
+            int orderQuantity = Integer.parseInt(productKey.split(":")[3]);
+
+            // Redis 에서 주문 마이너스 한 수량 읽어와서 MySQL 에 재고 마이너스
+            String lockKey = "lock:product:"+productId+":stock";
+            // 락 획득 순서를 공평하게 보장하는 fairLock 사용, 먼저 락을 요청한 쓰레드가 먼저 락 획득.
+            RLock fairLock = redissonClient.getFairLock(lockKey);
+            boolean available = false;
+
+            try{
+                available = fairLock.tryLock(10, 5, TimeUnit.SECONDS);
+
+                if(!available) {
+                    throw new IllegalArgumentException("Lock 획득 실패");
+                }
+
+                Product product = productRepository.findById(productId).orElseThrow(()->
+                        new NullPointerException("해당 상품이 존재하지 않습니다.")
+                );
+
+                product.changeStockByOrderQuantity(orderQuantity, type);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                // 락이 이용가능한 상태이고 현재 스레드가 점유하고 있으면 unlock
+                if(available && fairLock.isHeldByCurrentThread())
+                    fairLock.unlock();
+            }
+        }
+
+        redisRepository.deleteData(key);
+    }
+
+    @Transactional
+    public void restockProductStockByPaymentCancel(PaymentOrderDto paymentOrderDto, String type) {
+        Long orderId = paymentOrderDto.getOrderId();
+        String key = "reservation:order:"+orderId;
+        List<String> productList = redisRepository.getEntireList(key);
+
+        restockProductStock(key, productList);
+    }
+
+    @Transactional
+    public void restockProductStock(String key, List<String> productList) {
+        if(productList == null || productList.isEmpty())
+            throw new IllegalArgumentException("해당 예약 내역이 없습니다.");
+
+        for(String productKey : productList) {
+            Long productId = Long.parseLong(productKey.split(":")[1]);
+            int orderQuantity = Integer.parseInt(productKey.split(":")[3]);
+
+            // redis 에서 예약으로 인해 decrement 한 수량 복구
+            String lockKey = "lock:reservation:product:"+productId+":stock";
+            RLock fairLock = redissonClient.getFairLock(lockKey);
+            boolean available = false;
+
+            try{
+                available = fairLock.tryLock(10, 5, TimeUnit.SECONDS);
+
+                if(!available) {
+                    throw new IllegalArgumentException("Lock 획득 실패");
+                }
+
+                // 결제 취소로 인한 예약 재고 복구
+                redisRepository.incrementData(key, orderQuantity);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                // 락이 이용가능한 상태이고 현재 스레드가 점유하고 있으면 unlock
+                if(available && fairLock.isHeldByCurrentThread())
+                    fairLock.unlock();
             }
         }
     }
