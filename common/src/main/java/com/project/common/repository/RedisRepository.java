@@ -1,11 +1,14 @@
 package com.project.common.repository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -42,5 +45,26 @@ public class RedisRepository {
 
     public void incrementData(String key, int orderQuantity) {
         redisTemplate.opsForValue().increment(key, orderQuantity);
+    }
+
+    public void saveListData(String key, List<String> values, Long duration, TimeUnit unit) {
+        ListOperations<String, String> listOps = redisTemplate.opsForList();
+        listOps.rightPushAll(key, values);
+
+        if(duration != null && unit != null)
+            redisTemplate.expire(key, duration, unit);
+    }
+
+    public void extendExpire(String key, int time) {
+        if (redisTemplate.hasKey(key)) {
+            redisTemplate.expire(key, Duration.ofMinutes(time));
+        } else {
+            throw new IllegalArgumentException("예약 내역이 없습니다.");
+        }
+    }
+
+    public List<String> getEntireList(String key) {
+        ListOperations<String, String> listOps = redisTemplate.opsForList();
+        return listOps.range(key, 0, -1);
     }
 }
