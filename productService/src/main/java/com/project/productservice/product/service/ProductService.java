@@ -218,11 +218,11 @@ public class ProductService {
         String key = "reservation:order:"+orderId;
         List<String> productList = redisRepository.getEntireList(key);
 
-        restockProductStock(key, productList);
+        restockProductStock(productList);
     }
 
     @Transactional
-    public void restockProductStock(String key, List<String> productList) {
+    public void restockProductStock(List<String> productList) {
         if(productList == null || productList.isEmpty())
             throw new IllegalArgumentException("해당 예약 내역이 없습니다.");
 
@@ -242,6 +242,7 @@ public class ProductService {
                     throw new IllegalArgumentException("Lock 획득 실패");
                 }
 
+                String key = "product:"+productId+":stock";
                 // 결제 취소로 인한 예약 재고 복구
                 redisRepository.incrementData(key, orderQuantity);
             } catch (InterruptedException e) {
