@@ -88,8 +88,7 @@ public class ProductConsumerService {
             productService.restockProductStockByPaymentCancel(
                     PaymentOrderDto.builder()
                             .paymentId(Long.parseLong(String.valueOf(data.get("paymentId"))))
-                            .orderId(Long.parseLong(String.valueOf(data.get("orderId")))).build(),
-                    "plus"
+                            .orderId(Long.parseLong(String.valueOf(data.get("orderId")))).build()
             );
         }
     }

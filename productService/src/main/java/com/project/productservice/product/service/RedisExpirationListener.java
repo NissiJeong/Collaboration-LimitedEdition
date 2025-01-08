@@ -28,7 +28,7 @@ public class RedisExpirationListener extends KeyExpirationEventMessageListener {
     public void onMessage(Message message, byte[] pattern) {
         String expiredKey = message.toString();
 
-        log.info("redis key expiration1: {}",expiredKey);
+        log.info("redis key expiration: {}",expiredKey);
         // 예약이 만료되면 Redis 에서 복구
         if(expiredKey.startsWith("reservation:order:")) {
             List<String> productList = redisRepository.getEntireList("backup:"+expiredKey);

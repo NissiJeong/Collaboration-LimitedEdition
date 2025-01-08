@@ -28,7 +28,7 @@ public class OrderController {
         return ResponseEntity.status(200).body(response);
     }
 
-    @PutMapping("/{orderId}")
+    @PutMapping(value = "/{orderId}")
     public ResponseEntity<ResponseMessage> updateOrderStatus(@PathVariable Long orderId,
                                                @RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) {
         OrderResponseDto orderResponseDto = orderService.updateOrderStatus(orderId, orderRequestDto, request);

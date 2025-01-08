@@ -101,8 +101,6 @@ public class ProductService {
             String key = "product:"+product.getId()+":stock";
             if("plus".equals(type))
                 redisRepository.incrementData(key, productDto.getOrderQuantity());
-//            else // 레디스 재고 감소는 예약 시에만
-//                redisRepository.decrementData(key, productDto.getOrderQuantity());
 
             return ProductDto.builder()
                     .productId(product.getId())
@@ -213,12 +211,15 @@ public class ProductService {
     }
 
     @Transactional
-    public void restockProductStockByPaymentCancel(PaymentOrderDto paymentOrderDto, String type) {
+    public void restockProductStockByPaymentCancel(PaymentOrderDto paymentOrderDto) {
         Long orderId = paymentOrderDto.getOrderId();
         String key = "reservation:order:"+orderId;
         List<String> productList = redisRepository.getEntireList(key);
 
         restockProductStock(productList);
+
+        redisRepository.deleteData(key);
+        redisRepository.deleteData("backup:"+key);
     }
 
     @Transactional
