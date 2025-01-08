@@ -56,4 +56,9 @@ public class PaymentController {
         return ResponseEntity.status(200).body(responseMessage);
     }
 
+    @GetMapping(value = "/{orderId}")
+    public ResponseEntity<?> getPaymentId(@PathVariable Long orderId) {
+        Long paymentId = paymentService.getPaymentIdByOrderId(orderId);
+        return ResponseEntity.ok(paymentId);
+    }
 }

@@ -76,4 +76,10 @@ public class PaymentService {
                 .paymentId(payment.getId())
                 .status(payment.getStatus()).build();
     }
+
+    public Long getPaymentIdByOrderId(Long orderId) {
+        Payment payment = paymentRepository.getPaymentByOrderId(orderId);
+
+        return payment.getId();
+    }
 }
