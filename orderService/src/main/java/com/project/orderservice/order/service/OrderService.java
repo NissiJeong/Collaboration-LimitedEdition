@@ -101,7 +101,7 @@ public class OrderService {
         orderProductRepository.saveAll(orderProducts);
         // Redis 에 상품 예약 상태 저장
         String key = "reservation:order:"+savedOrder.getId();
-        redisRepository.saveListData(key, reserveProduct, 10L, TimeUnit.MINUTES);
+        redisRepository.saveListData(key, reserveProduct, 5L, TimeUnit.MINUTES);
         // 백업 데이터 저장(예약 만료 시 사용 후 삭제 처리)
         key = "backup:reservation:order:"+savedOrder.getId();
         redisRepository.saveListData(key, reserveProduct, null, null);

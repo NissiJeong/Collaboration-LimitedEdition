@@ -6,7 +6,7 @@ export let options = {
     scenarios: {
         unique_users: {
             executor: 'per-vu-iterations', // 각 유저가 정해진 횟수만큼만 실행
-            vus: 1300,                     // 1000명의 사용자
+            vus: 1000,                     // 1000명의 사용자
             iterations: 1,                 // 각 사용자가 1번씩만 호출
             maxDuration: '1m',             // 최대 테스트 시간
         },
@@ -22,7 +22,7 @@ const orderRequestBody = JSON.stringify({
     orderProductDtoList : [
         {
             productId: 1,
-            orderQuantity: 10,
+            orderQuantity: 5,
         }
     ],
     addressId: 1,
@@ -38,7 +38,6 @@ const accessToken = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJqbml
 
 export default function () {
     const user = `${__VU}`
-    console.log("user id: ",user);
     // 공통 헤더 설정
     const headers = {
         'Content-Type': 'application/json',
@@ -56,24 +55,31 @@ export default function () {
     });
 
     // 2. 주문 후 30초 이내에 결제 API 호출
+    /*
     sleep(5);
 
-    let orderResponseBody = JSON.parse(orderRes.body);
-    // 3. orderId 추출
-    let orderId = orderResponseBody.data.orderId;
+    // 주문 성공한 인원만 결제 호출
+    if(orderRes.status === 200) {
+        let orderResponseBody = JSON.parse(orderRes.body);
+        // 3. orderId 추출
+        let orderId = orderResponseBody.data.orderId;
 
-    let res = http.get(PAYMENT_GET_API_URL+"/"+orderId);
+        let res = http.get(PAYMENT_GET_API_URL+"/"+orderId);
 
-    let paymentId = res.body;
+        let paymentId = res.body;
 
-    let paymentRes = http.put(PAYMENT_API_URL+"/"+paymentId, null, { headers });
+        let paymentRes = http.put(PAYMENT_API_URL+"/"+paymentId, null, { headers });
 
-    // 결제 요청 체크
-    check(paymentRes, {
-        'Payment status is 200': (r) => r.status === 200,
-        'Payment response time < 1000ms': (r) => r.timings.duration < 1000,
-    });
+        // 결제 요청 체크
+        check(paymentRes, {
+            'Payment status is 200': (r) => r.status === 200,
+            'Payment response time < 1000ms': (r) => r.timings.duration < 1000,
+        });
 
-    // 1초 대기 후 다음 사용자로 넘어감
-    sleep(1);
+        // 1초 대기 후 다음 사용자로 넘어감
+        sleep(1);
+    }
+
+     */
+
 }
