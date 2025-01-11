@@ -1,5 +1,7 @@
 package com.project.productservice.product.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.common.repository.RedisRepository;
 import com.project.productservice.product.dto.PaymentOrderDto;
 import com.project.productservice.product.dto.ProductDto;
@@ -23,8 +25,9 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final RedisRepository redisRepository;
     private final RedissonClient redissonClient;
+    private final ObjectMapper objectMapper;
 
-    public ProductDto saveProduct(ProductDto requestDto) {
+    public ProductDto saveProduct(ProductDto requestDto) throws JsonProcessingException {
         Product product = new Product(requestDto);
 
         // 상품 저장
@@ -34,6 +37,13 @@ public class ProductService {
         String key = "product:"+savedProduct.getId()+":stock";
         int stock = savedProduct.getStock();
         redisRepository.saveData(key, String.valueOf(stock));
+
+        // 이벤트 상품인 경우 Redis 에 저장
+        if(savedProduct.getEventYn().equals("Y")) {
+            key = "event:product:"+savedProduct.getId();
+            String jsonValue = objectMapper.writeValueAsString(savedProduct);
+            redisRepository.saveData(key, jsonValue);
+        }
 
         return ProductDto.builder()
                 .productId(savedProduct.getId())

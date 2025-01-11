@@ -1,5 +1,6 @@
 package com.project.productservice.product.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.common.dto.ResponseMessage;
 import com.project.productservice.product.dto.ProductDto;
 import com.project.productservice.product.service.ProductService;
@@ -17,7 +18,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<ResponseMessage> registerProduct(@RequestBody ProductDto requestDto) {
+    public ResponseEntity<ResponseMessage> registerProduct(@RequestBody ProductDto requestDto) throws JsonProcessingException {
         ProductDto responseDto = productService.saveProduct(requestDto);
 
         ResponseMessage response = ResponseMessage.builder()
