@@ -7,6 +7,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentProducerService {
@@ -24,6 +26,12 @@ public class PaymentProducerService {
         producerRecord.headers().add("X-Claim-sub", String.valueOf(userId).getBytes());
         producerRecord.headers().add("timestamp", String.valueOf(System.currentTimeMillis()).getBytes());
 
-        kafkaTemplate.send(producerRecord);
+        CompletableFuture.runAsync(() -> kafkaTemplate.send(producerRecord))
+                .thenAccept(result -> System.out.println("Kafka 메시지 전송 성공: " + message))
+                .exceptionally(ex -> {
+                    System.err.println("Kafka 메시지 전송 실패: " + message);
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 }

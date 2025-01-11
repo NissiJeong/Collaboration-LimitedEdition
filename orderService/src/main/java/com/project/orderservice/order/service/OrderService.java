@@ -1,6 +1,5 @@
 package com.project.orderservice.order.service;
 
-import com.esotericsoftware.kryo.util.ObjectMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.common.dto.KafkaMessage;
