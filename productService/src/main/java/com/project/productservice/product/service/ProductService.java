@@ -8,6 +8,7 @@ import com.project.productservice.product.dto.ProductDto;
 import com.project.productservice.product.entity.Product;
 import com.project.productservice.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -33,6 +35,7 @@ public class ProductService {
         // 상품 저장
         Product savedProduct = productRepository.save(product);
 
+
         // 상품 재고 Redis 에 저장
         String key = "product:"+savedProduct.getId()+":stock";
         int stock = savedProduct.getStock();
@@ -40,6 +43,7 @@ public class ProductService {
 
         // 이벤트 상품인 경우 Redis 에 저장
         if(savedProduct.getEventYn().equals("Y")) {
+            log.info("event product redis save: {}",savedProduct.getProductName());
             key = "event:product:"+savedProduct.getId();
             String jsonValue = objectMapper.writeValueAsString(savedProduct);
             redisRepository.saveData(key, jsonValue);

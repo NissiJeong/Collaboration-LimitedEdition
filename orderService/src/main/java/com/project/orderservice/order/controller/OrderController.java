@@ -1,8 +1,10 @@
 package com.project.orderservice.order.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.common.dto.ResponseMessage;
 import com.project.orderservice.order.dto.OrderRequestDto;
 import com.project.orderservice.order.dto.OrderResponseDto;
+import com.project.orderservice.order.entity.Order;
 import com.project.orderservice.order.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +19,9 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<ResponseMessage> registerOrder(@RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) throws InterruptedException {
+    public ResponseEntity<ResponseMessage> registerOrder(@RequestBody OrderRequestDto orderRequestDto, HttpServletRequest request) throws InterruptedException, JsonProcessingException {
         OrderResponseDto orderResponseDto = orderService.saveOrder(orderRequestDto, request);
+        orderService.saveReservation(orderResponseDto);
 
         ResponseMessage response = ResponseMessage.builder()
                 .data(orderResponseDto)

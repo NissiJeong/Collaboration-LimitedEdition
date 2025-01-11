@@ -1,5 +1,8 @@
 package com.project.orderservice.order.service;
 
+import com.esotericsoftware.kryo.util.ObjectMap;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.common.dto.KafkaMessage;
 import com.project.common.repository.RedisRepository;
 import com.project.orderservice.feignclient.product.ProductFeign;
@@ -25,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -38,75 +42,32 @@ public class OrderService {
     private final OrderProducerService orderProducerService;
     private final RedisRepository redisRepository;
     private final RedissonClient redissonClient;
+    private final ObjectMapper objectMapper;
 
     @Transactional
-    public OrderResponseDto saveOrder(OrderRequestDto orderRequestDto, HttpServletRequest request) {
+    public OrderResponseDto saveOrder(OrderRequestDto orderRequestDto, HttpServletRequest request) throws JsonProcessingException {
         // X-Claim-sub 헤더 값을 가져오기
         Long userId = Long.parseLong(request.getHeader("X-Claim-sub"));
         Long addressId = orderRequestDto.getAddressId();
 
-        // 1. Order 등록(주문 진행 중)
-        Order savedOrder = orderRepository.save(new Order(userId, addressId, OrderStatusEnum.IN_PROGRESS));
-
         // 2. Order Product 등록
         // 2-1. Product id 로 Product 정보 가져오기
         // 2-2. Order Product 등록
-        List<OrderProductDto> productDtoList = orderRequestDto.getOrderProductDtoList();
-        List<OrderProduct> orderProducts = new ArrayList<>();
-        List<String> reserveProduct = new ArrayList<>();
-        for(OrderProductDto orderProductDto : productDtoList) {
-            ProductDto productDto = productFeign.getProduct(orderProductDto.getProductId()).orElseThrow(() ->
-                    new NullPointerException(orderProductDto.getProductId()+" 해당 상품이 존재하지 않습니다.")
-            );
+        Long productId = orderRequestDto.getProductId();
+        log.info("productId: {}",productId);
+        int orderQuantity = orderRequestDto.getOrderQuantity();
+        ProductDto productDto = checkAvailableOrder(productId, orderQuantity).orElseThrow(()->
+                new IllegalArgumentException("주문 가능한 상태가 아닙니다.")
+        );
 
-            // 예약 시에 상품별로 lock 획득하여서 동시성 이슈가 생기지 않도록
-            String lockKey = "lock:reservation:product:"+productDto.getProductId()+":stock";
-            RLock fairLock = redissonClient.getFairLock(lockKey);
-            boolean available = false;
+        // 1. Order 등록(주문 진행 중)
+        Order savedOrder = orderRepository.save(new Order(userId, addressId, OrderStatusEnum.IN_PROGRESS));
 
-            try{
-                available = fairLock.tryLock(10, 5, TimeUnit.SECONDS);
+        // order product data 저장
+        OrderProduct orderProduct = new OrderProduct(savedOrder, productDto, orderQuantity);
+        orderProductRepository.save(orderProduct);
 
-                if(!available) {
-                    throw new IllegalArgumentException("Lock 획득 실패");
-                }
-
-                String key = "product:"+productDto.getProductId()+":stock";
-                String stockStr = redisRepository.getData(key);
-                if(stockStr == null) {
-                    throw new IllegalArgumentException(productDto.getProductName()+productDto.getProductName()+" 상품 재고가 없습니다.");
-                }
-
-                int stock = Integer.parseInt(stockStr);
-                if(stock-orderProductDto.getOrderQuantity() < 0) {
-                    // TODO 다른 상품 오류 시 이미 재고 감소 시킨 상품 복구
-                    throw new IllegalArgumentException(productDto.getProductName()+" 상품은 "+stock+"개만 주문 가능합니다.");
-                }
-
-                // 예약으로 인한 재고 감소
-                redisRepository.decrementData(key, orderProductDto.getOrderQuantity());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } finally {
-                // 락이 이용가능한 상태이고 현재 스레드가 점유하고 있으면 unlock
-                if(available && fairLock.isHeldByCurrentThread())
-                    fairLock.unlock();
-            }
-
-            OrderProduct orderProduct = new OrderProduct(savedOrder, productDto, orderProductDto.getOrderQuantity());
-            orderProducts.add(orderProduct);
-
-            reserveProduct.add("product:"+productDto.getProductId()+":reserveQuantity:"+orderProductDto.getOrderQuantity());
-        }
-        orderProductRepository.saveAll(orderProducts);
-        // Redis 에 상품 예약 상태 저장
-        String key = "reservation:order:"+savedOrder.getId();
-        redisRepository.saveListData(key, reserveProduct, 5L, TimeUnit.MINUTES);
-        // 백업 데이터 저장(예약 만료 시 사용 후 삭제 처리)
-        key = "backup:reservation:order:"+savedOrder.getId();
-        redisRepository.saveListData(key, reserveProduct, null, null);
-
-        // 주문 생성 이벤트 발생 -> 결제 서비스: 결제 진입 생성
+        // 주문 생성 이벤트 발생(비동기 처리) -> 결제 서비스: 결제 진입 생성
         orderProducerService.sendMessage(
                 "order-topic",
                 new KafkaMessage<>("order_create", OrderRequestDto.builder()
@@ -114,9 +75,60 @@ public class OrderService {
                         .orderProductDtoList(orderRequestDto.getOrderProductDtoList()).build()),
                 userId);
 
-        return OrderResponseDto.builder()
-                .orderId(savedOrder.getId())
-                .orderStatus(savedOrder.getOrderStatus()).build();
+        return OrderResponseDto.builder().orderId(savedOrder.getId()).productId(productId).orderQuantity(orderQuantity).build();
+    }
+
+    public void saveReservation(OrderResponseDto orderResponseDto) {
+        Long orderId = orderResponseDto.getOrderId();
+        Long productId = orderResponseDto.getProductId();
+        int orderQuantity = orderResponseDto.getOrderQuantity();
+
+        // 예약 시에 상품별로 lock 획득하여서 동시성 이슈가 생기지 않도록
+        String lockKey = "lock:reservation:product:"+productId+":stock";
+        RLock fairLock = redissonClient.getFairLock(lockKey);
+        boolean available = false;
+
+        try{
+            available = fairLock.tryLock(10, 3, TimeUnit.SECONDS);
+
+            if(!available) {
+                throw new IllegalArgumentException("Lock 획득 실패");
+            }
+
+            String key = "product:"+productId+":stock";
+            // 예약으로 인한 재고 감소
+            redisRepository.decrementData(key, orderQuantity);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 락이 이용가능한 상태이고 현재 스레드가 점유하고 있으면 unlock
+            if(available && fairLock.isHeldByCurrentThread())
+                fairLock.unlock();
+        }
+
+        // 예약 내역, 백업 내역 레디스에 저장
+        List<String> reserveProduct = new ArrayList<>();
+        reserveProduct.add("product:"+productId+":reserveQuantity:"+orderQuantity);
+        String key = "reservation:order:"+orderId;
+        redisRepository.saveListData(key, reserveProduct, 5L, TimeUnit.MINUTES);
+        key = "backup:reservation:order:"+orderId;
+        redisRepository.saveListData(key, reserveProduct, null, null);
+    }
+
+    private Optional<ProductDto> checkAvailableOrder(Long productId, int orderQuantity) throws JsonProcessingException {
+        String key = "event:product:"+productId;
+        String jsonValue = redisRepository.getData(key);
+        if(jsonValue == null) {
+            throw new NullPointerException("해당 상품이 존재하지 않습니다.");
+        }
+        ProductDto productDto = objectMapper.readValue(jsonValue, ProductDto.class);
+
+        int stock = productDto.getStock();
+        if(stock-orderQuantity < 0) {
+            throw new IllegalArgumentException(productDto.getProductName()+" 상품은 "+stock+"개만 주문 가능합니다.");
+        }
+
+        return Optional.of(productDto);
     }
 
     // 매일 자정에 주문 상태값 업데이트

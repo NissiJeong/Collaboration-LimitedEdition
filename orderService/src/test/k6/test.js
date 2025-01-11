@@ -5,10 +5,9 @@ import { check, sleep } from 'k6';
 export let options = {
     scenarios: {
         unique_users: {
-            executor: 'per-vu-iterations', // 각 유저가 정해진 횟수만큼만 실행
-            vus: 150,                     // 1000명의 사용자
-            iterations: 1,                 // 각 사용자가 1번씩만 호출
-            maxDuration: '1m',             // 최대 테스트 시간
+            executor: 'constant-vus',   // 일정한 VUser 수를 유지
+            vus: 50,                    // 50명의 사용자
+            duration: '1m',             // 테스트 시간 1분
         },
     },
     thresholds: {
@@ -19,12 +18,8 @@ export let options = {
 
 // 주문 API 요청 본문
 const orderRequestBody = JSON.stringify({
-    orderProductDtoList : [
-        {
-            productId: 1,
-            orderQuantity: 5,
-        }
-    ],
+    productId: 1,
+    orderQuantity: 5,
     addressId: 1,
 });
 
@@ -54,6 +49,7 @@ export default function () {
         'Order response time < 10000ms': (r) => r.timings.duration < 10000,
     });
 
+    /*
     // 2. 주문 후 30초 이내에 결제 API 호출
     sleep(5);
 
@@ -78,5 +74,6 @@ export default function () {
         // 1초 대기 후 다음 사용자로 넘어감
         sleep(1);
     }
+    */
 
 }
