@@ -54,7 +54,6 @@ public class OrderService {
         // 2-1. Product id 로 Product 정보 가져오기
         // 2-2. Order Product 등록
         Long productId = orderRequestDto.getProductId();
-        log.info("productId: {}",productId);
         int orderQuantity = orderRequestDto.getOrderQuantity();
         ProductDto productDto = checkAvailableOrder(productId, orderQuantity).orElseThrow(()->
                 new IllegalArgumentException("주문 가능한 상태가 아닙니다.")

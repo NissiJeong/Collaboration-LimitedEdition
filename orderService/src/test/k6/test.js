@@ -18,8 +18,12 @@ export let options = {
 
 // 주문 API 요청 본문
 const orderRequestBody = JSON.stringify({
-    productId: 1,
-    orderQuantity: 5,
+    orderProductDtoList : [
+        {
+            productId: 1,
+            orderQuantity: 5,
+        }
+    ],
     addressId: 1,
 });
 
@@ -49,7 +53,6 @@ export default function () {
         'Order response time < 10000ms': (r) => r.timings.duration < 10000,
     });
 
-    /*
     // 2. 주문 후 30초 이내에 결제 API 호출
     sleep(5);
 
@@ -74,6 +77,5 @@ export default function () {
         // 1초 대기 후 다음 사용자로 넘어감
         sleep(1);
     }
-    */
 
 }
