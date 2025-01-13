@@ -65,49 +65,48 @@ public class UserService {
     public void refreshAccessToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Cookie[] cookies = request.getCookies();
 
-        if(cookies != null) {
-            for(Cookie cookie : cookies) {
-                if("refresh_token".equals(cookie.getName())) {
-                    String refreshToken = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
+        if(cookies == null) {
+            throw new NullPointerException("쿠키가 존재하지 않습니다.");
+        }
 
-                    // refresh token 검증과 동시에 username 반환
-                    String username = jwtUtil.validateToken(refreshToken);
-                    if(username == null) {
-                        throw new NullPointerException("refresh token 으로부터 User 정보를 가져올 수 없습니다.");
-                    }
-                    if (username.contains("TokenError:")) {
-                        log.error("Token Error");
-                        // 토큰 만료에 대한 정보 전달 -> 이후 사용자 /user/token/refresh 요청가능
-                        switch (username) {
-                            case "TokenError: Expired JWT token" ->
-                                    throw new IllegalArgumentException("TokenError: Expired JWT token");
-                            case "TokenError: Invalid JWT signature" ->
-                                    throw new IllegalArgumentException("TokenError: Invalid JWT signature");
-                            case "TokenError: Invalid token" ->
-                                    throw new IllegalArgumentException("TokenError: Invalid token");
-                        }
-                        return;
-                    }
-                    String redisRefreshToken = redisRepository.getData(username+"_refreshToken");
+        for (Cookie cookie : cookies) {
+            if ("refresh_token".equals(cookie.getName())) {
+                String refreshToken = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
 
-                    // refresh 토큰이 유효하다면
-                    Map<String, String> userInfo = jwtUtil.validationRefreshToken(refreshToken, redisRefreshToken, response).orElseThrow(() ->
-                            new IllegalArgumentException("refresh token 이 유효하지 않습니다. 다시 로그인을 해야합니다.")
-                    );
-
-                    // accessToken , refreshToken 재발급
-                    username = userInfo.get("username");
-                    User user = userRepository.findByEmail(username).orElseThrow(()->
-                            new NullPointerException("사용자 정보가 존재하지 않습니다.")
-                    );
-                    UserRoleEnum role = UserRoleEnum.valueOf(userInfo.get("role"));
-                    String newRefreshToken = jwtUtil.createAccessTokenAndRefreshToken(username, user.getId(), role, response).orElseThrow(()->
-                            new IllegalArgumentException("refresh token 생성 오류")
-                    );
-
-                    // Redis 에 refreshToken 만료시간 설정(90일)
-                    redisRepository.setDataExpire(username+"_refreshToken", newRefreshToken, 90L * 24 * 60 * 60 * 1000L);
+                // refresh token 검증과 동시에 username 반환
+                String username = jwtUtil.validateToken(refreshToken);
+                if (username == null) {
+                    throw new NullPointerException("refresh token 으로부터 User 정보를 가져올 수 없습니다.");
                 }
+                if (username.contains("TokenError:")) {
+                    log.error("Token Error");
+                    // 토큰 만료에 대한 정보 전달 -> 이후 사용자 /user/token/refresh 요청가능
+                    switch (username) {
+                        case "TokenError: Expired JWT token" -> throw new IllegalArgumentException("TokenError: Expired JWT token");
+                        case "TokenError: Invalid JWT signature" -> throw new IllegalArgumentException("TokenError: Invalid JWT signature");
+                        case "TokenError: Invalid token" -> throw new IllegalArgumentException("TokenError: Invalid token");
+                    }
+                    return;
+                }
+                String redisRefreshToken = redisRepository.getData(username + "_refreshToken");
+
+                // refresh 토큰이 유효하다면
+                Map<String, String> userInfo = jwtUtil.validationRefreshToken(refreshToken, redisRefreshToken, response).orElseThrow(() ->
+                        new IllegalArgumentException("refresh token 이 유효하지 않습니다. 다시 로그인을 해야합니다.")
+                );
+
+                // accessToken , refreshToken 재발급
+                username = userInfo.get("username");
+                User user = userRepository.findByEmail(username).orElseThrow(() ->
+                        new NullPointerException("사용자 정보가 존재하지 않습니다.")
+                );
+                UserRoleEnum role = UserRoleEnum.valueOf(userInfo.get("role"));
+                String newRefreshToken = jwtUtil.createAccessTokenAndRefreshToken(username, user.getId(), role, response).orElseThrow(() ->
+                        new IllegalArgumentException("refresh token 생성 오류")
+                );
+
+                // Redis 에 refreshToken 만료시간 설정(90일)
+                redisRepository.setDataExpire(username + "_refreshToken", newRefreshToken, 90L * 24 * 60 * 60 * 1000L);
             }
         }
     }
