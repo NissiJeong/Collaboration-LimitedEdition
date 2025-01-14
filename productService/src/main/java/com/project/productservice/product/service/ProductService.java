@@ -35,7 +35,6 @@ public class ProductService {
         // 상품 저장
         Product savedProduct = productRepository.save(product);
 
-
         // 상품 재고 Redis 에 저장
         String key = "product:"+savedProduct.getId()+":stock";
         int stock = savedProduct.getStock();
@@ -60,6 +59,10 @@ public class ProductService {
     public List<ProductDto> getProductList(String eventYn) {
         List<Product> productList = null;
 
+        if(eventYn == null || eventYn.isEmpty()) {
+            throw new NullPointerException("이벤트 여부 파라미터 값은 필수입니다.");
+        }
+
         if("N".equals(eventYn))
             productList = productRepository.findAll();
         else
@@ -81,6 +84,11 @@ public class ProductService {
         );
 
         String key = "product:"+product.getId()+":stock";
+        String stockStr = redisRepository.getData(key);
+        if(stockStr == null || stockStr.isEmpty()) {
+            redisRepository.saveData(key, String.valueOf(product.getStock()));
+        }
+
         int stock = Integer.parseInt(redisRepository.getData(key));
 
         return ProductDto.builder()
