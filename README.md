@@ -1,73 +1,93 @@
 # 🏕 Collaboration Limited Edition 프로젝트
-## 프로젝트 설명
-### 개요
+## 프로젝트 소개
+
 - 캠핑 브랜드와 패션 브랜드의 콜라보 한정판 상품 판매/구매 서비스
-- 사용자는 브랜드에서 올린 콜라보 한정판 상품을 정해진 시간에 정해진 수량 만큼 선착순으로 구매
+- 사용자는 브랜드에서 올린 콜라보 한정판 상품을 정해진 시간에 준비된 재고만큼 선착순으로 구매
 
 <details>
-<summary><span >프로젝트 실행 방법</span></summary>
+<summary style="font-size: 1.2em; font-weight: bold">프로젝트 실행 방법</summary>
 <div markdown="1">
 <ul>
-<li>도커 실행 명령어</li>
+<li>도커 실행 명령어
+
+```Docker
+run 
+```
+</li>
 <li>222</li>
 </ul>
 </div>
 </details>
 
-### 프로젝트 일정 계획
-|12.14(토)|12.15(일)|12.16(월)|12.16(화)|
-|:---:|:---:|:---:|:---:|
-|프로젝트 기회<br>도커,스프링 기본세팅<br>기본구현 완료| |테스트 코드 작성<br>Optional 기능 구현|Optional 기능 구현|
+### 기술 스택
 
-### 프로젝트 환경
-- Java17
-- Spring Boot 3.3.0
-- Gradle
-- JPA
-- MySQL
-- Redis
-- MySQL
-- Redis
-# 💡 프로젝트 설명 및 기술적 요구사항
-### 프로젝트 설명
-- 상품이 재입고 되었을 때, 재입고 알림을 설정한 유저들에게 재입고 알림
-### 비즈니스 요구사항
-- 재입고 알림을 전송하기 전, 상품의 재입고 회차를 1 증가
-- 상품이 재입고 되었을 때, 재입고 알림을 설정한 유저들에게 알림 메시지를 전달
-- 재입고 알림은 재입고 알림을 설정한 유저 순서대로 메시지 전송
-- 회차별 재입고 알림을 받은 유저 목록 저장
-- 재입고 알림을 보내던 중 재고가 모두 없어진다면 알림 중단
-- 재입고 알림 전송의 상태를 DB 에 저장
-### 기술적 요구사항
-- 알림 메시지는 1초에 최대 500개의 요청
-- MySQL 조회 시 인덱스를 잘 탈 수 있게 설계
-- 설계해야 할 테이블 목록: Product, ProductNotificationHistory, ProductUserNotification, ProductUserNotificationHistory
-- (Optional) 예외에 의해 알림 메시지 발송이 실패한 경우, manual 하게 상품 재입고 알림 메시지를 다시 보내는 API를 호출한다면 마지막으로 전송 성공한 이후 유저부터 다시 알림 메시지 전송
-- (Optional) 테스트 코드 작성
+<details>
+<summary style="font-size: 1.2em; font-weight: bold">Backend</summary>
+<div markdown="1">
+<ul>
+<li>Spring Boot</li>
+<li>Spring Security, JWT</li>
+<li>Spring Data JPA</li>
+<li>Kafka</li>
+<li>MSA(API Gateway, Spring Eureka)</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary style="font-size: 1.2em; font-weight: bold">DB</summary>
+<div markdown="1">
+<ul>
+<li>MySQL</li>
+<li>Redis</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary style="font-size: 1.2em; font-weight: bold">DevOps</summary>
+<div markdown="1">
+<ul>
+<li>Docker</li>
+<li>Docker Compose</li>
+<li>Gradle</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary style="font-size: 1.2em; font-weight: bold">Test</summary>
+<div markdown="1">
+<ul>
+<li>Junit5</li>
+<li>Postman</li>
+<li>nGrinder</li>
+<li>K6</li>
+</ul>
+</div>
+</details>
+
 ## 💡 기획
-### 데이터베이스 설계 및 ERD
-#### 5개 테이블 관리
-- Product: 상품관리
-- ProductNotificationHistory: 상품별 재입고 알림 히스토리
-- ProductUserNotification: 상품별 재입고 알림을 설정한 유저
-- ProductUserNotificationHistory: 상품 + 유저별 알림 히스토리
-- User: 사용자 관리<br>
-#### [ERD]
-![img.png](images/img.png)
-### 알림 기능 구현 및 flow
-(1) 상품 재입고 회차 1 증가 &rarr; (2) 재입고 알림 설정한 유저들에게 메시지 전달(Redis Streams 사용) &rarr; (3) 알림 전송 성공한 유저 저장 <br>
-<br>
-(2) 에서 고려 사항<br>
-- 알림을 설정한 유서 순서대로 메시지 전송: 생성 일자로 ASC<br>
-- 재입고 알림을 보내던 중 재고가 모두 없어진다면 알림 중단<br>
-  추후 다시 재입고 회차가 증가하면 끊어진 사용자부터 알림 재발송 &rarr; 알림 발송 시마다 Redis 에 마지막 알림 발송 사용자 update &rarr; 알림 종료된 시점에 MySQL 과 동기화<br>
-- 예외에 의해 알림이 실패할 경우 manual 하게 상품 재입고 알림 메시지를 다시 보내는 API를 호출한다면 끊어진 사용자부터 알림 재발송<br>
-  예외 발생하기 전 Redis 와 MySQL 동기화 &rarr; API 호출 &rarr; 끊어진 사용자부터 알림 재발송<br>
-<br>
+### 주요 기능
+- 사용자 서비스
+  - 이메일 인증
+  - 회원가입
+  - 로그인
+- 상품 서비스
+  - 상품 등록: 선착순 상품, 일반 상품
+  - 상품 조회
+  - 재고 관리
+- 주문 서비스
+  - 관심 상품 관리
+  - 상품 주문: 선착순 상품, 일반 상품
+- 결제 서비스
+  - 결제 프로세스
+  - 
+### ERD
+![img.png](images/ERD.png)
 
-(3) 에서 고려 사항<br>
-  - 회차별 재입고 알림을 받은 유저 목록 저장: ProductUserNotificationHistory 테이블에 저장
-<br>
+### 시스템 아키텍처
+![img.png](images/system.png)
 
 # 💡 기술적 구현
 ## 1 초에 알림 500 개 제한
