@@ -1,238 +1,76 @@
-# 🏕 Collaboration Limited Edition 프로젝트
-## 프로젝트 소개
-
+🏕 Collaboration Limited Edition 프로젝트
+====
+프로젝트 소개 
+----
+***2024.12.18 ~ 2025.01.15***
 - 캠핑 브랜드와 패션 브랜드의 콜라보 한정판 상품 판매/구매 서비스
 - 사용자는 브랜드에서 올린 콜라보 한정판 상품을 정해진 시간에 준비된 재고만큼 선착순으로 구매
 
-<details>
-<summary style="font-size: 1.2em; font-weight: bold">프로젝트 실행 방법</summary>
-<div markdown="1">
-<ul>
-<li>도커 실행 명령어
 
-```Docker
-run 
-```
-</li>
-<li>222</li>
-</ul>
-</div>
-</details>
+### ⚙️ 기술 스택
+#### Backend
+<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white">
+<img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
+<img src="https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white">
+<img src="https://raw.githubusercontent.com/ydmins/YdMinS/main/icons/jwt.png" alt="jwt" height="25px"/>
+<img src="https://img.shields.io/badge/MSA-F05032?style=for-the-badge&logoColor=white">
+<img src="https://img.shields.io/badge/spring cloud gateway-6DB33F?style=for-the-badge&logo=spring&logoColor=white">
+<img src="https://img.shields.io/badge/spring cloud eureka-6DB33F?style=for-the-badge&logo=spring&logoColor=white">
+<img src="https://img.shields.io/badge/Apache Kafka-%3333333.svg?style=for-the-badge&logo=Apache Kafka&logoColor=white">
+<img src="https://img.shields.io/badge/spring data JPA-007396?style=for-the-badge&logo=JPA&logoColor=white">
 
-### 기술 스택
+#### DB
+<img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+<img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=Redis&logoColor=white">
 
-<details>
-<summary style="font-size: 1.2em; font-weight: bold">Backend</summary>
-<div markdown="1">
-<ul>
-<li>Spring Boot</li>
-<li>Spring Security, JWT</li>
-<li>Spring Data JPA</li>
-<li>Kafka</li>
-<li>MSA(API Gateway, Spring Eureka)</li>
-</ul>
-</div>
-</details>
+#### DevOps
+<img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
+<img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white">
+<img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">
+<img src="https://img.shields.io/badge/git-F05032?style=for-the-badge&logo=git&logoColor=white">
 
-<details>
-<summary style="font-size: 1.2em; font-weight: bold">DB</summary>
-<div markdown="1">
-<ul>
-<li>MySQL</li>
-<li>Redis</li>
-</ul>
-</div>
-</details>
+#### Testing
+<img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=JUnit5&logoColor=white">
+<img src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white">
+<img src="https://img.shields.io/badge/nGrinder-6DB33F?style=for-the-badge&logoColor=white">
+<img src="https://img.shields.io/badge/k6-7D64FF?style=for-the-badge&logo=k6&logoColor=white">
 
-<details>
-<summary style="font-size: 1.2em; font-weight: bold">DevOps</summary>
-<div markdown="1">
-<ul>
-<li>Docker</li>
-<li>Docker Compose</li>
-<li>Gradle</li>
-</ul>
-</div>
-</details>
+### 🧐 기술 스택에 대한 고민
 
-<details>
-<summary style="font-size: 1.2em; font-weight: bold">Test</summary>
-<div markdown="1">
-<ul>
-<li>Junit5</li>
-<li>Postman</li>
-<li>nGrinder</li>
-<li>K6</li>
-</ul>
-</div>
-</details>
+- `MSA` 가 꼭 필요할까?
+- `이벤트 기반` 아키텍처란?(feat.Kafka)
+- MSA 환경에서 `도커` 구성하기
+- MSA 각 서비스는 어떻게 서로를 `식별`할까?(feat.Eureka)
+- `API Gateway` 도입 후 인증, 인가는 어디서?
+- `Redis` 의 다양한 역할
+- `JPA` 어디까지 깊어지나
 
-## 💡 기획
-### 주요 기능
-- 사용자 서비스
-  - 이메일 인증
-  - 회원가입
-  - 로그인
-- 상품 서비스
-  - 상품 등록: 선착순 상품, 일반 상품
-  - 상품 조회
-  - 재고 관리
-- 주문 서비스
-  - 관심 상품 관리
-  - 상품 주문: 선착순 상품, 일반 상품
-- 결제 서비스
-  - 결제 프로세스
-  - 
-### ERD
-![img.png](images/ERD.png)
+### 🩻 시스템 아키텍처
+![img.png](images/systemwhite.png)
 
-### 시스템 아키텍처
-![img.png](images/system.png)
+주요 기능 및 기술적 구현
+---
 
-# 💡 기술적 구현
-## 1 초에 알림 500 개 제한
-- 우선, 1초에 알림을 500 개 이상이 진행되는지 체크
-- 500 개 이상의 알림이 1초 안에 보내진다면 rate limiter 활용하여 500개 제한
-### 문제
-- 알림 보내는 로직 500개 데이터를 로컬에서 테스트 해보니 1600ms 이상 소요
-- 500개의 알림을 보낼 때마다 재고상태를 확인하다보니 아무리 Redis 에서 가져온다고 하더라도 로컬 환경에서는 1초 안으로 처리 안되는 듯
-- 성능 개선이 필요
-#### 수정 전 코드
-```java
-private void sendAlarm(Product product) {
-    // 재입고 알림 설정 유저 select
-    List<ProductUserNotification> alarmUsers = productUserNotificationRepository.findAllByProductOrderByIdAsc(product.getId());
+> ### Test Environment
+> - **CPU:** 2.0 GHz Quad-Core Intel Core i5
+> - **RAM:** 16 GB 3733 MHz LPDDR4X
+> - Network: Localhost environment
+### 📦 Product Service: 1분 동안 27만 번 조회, 막힘 없는 정확한 재고 조회
+이벤트 상품 판매가 시작되면 많은 트래픽이 동시에 몰릴 것으로 예상 → 막힘 없이 재고에 대한 정보를 전달해야 할 필요성 재고<br>
+- 효율적인 재고 읽기를 위해서 Redis 를 이용한 재고 캐싱 처리 적용
+  - 상품 저장 시 MySQL, Redis 동시 저장
+  - 상품 재고 Read 시에 Redis 에 있는 상품 재고 정보 조회
+  - 주문 결제 진입 시 Redis 재고 감소
+  - 상품 구매 확정 시 MySQL 재고 감소
+- 1분 동안 27만건 요청에 대해 99% 퍼센트로 1초 이내 응답(TPS: 3906)
 
-    // 알림 전송 시점에 재고 수량 MySQL 에서 가져와서 Redis 에 저장
-    redisRepository.saveProductStockCount(product);
+#### 상품 재고 캐싱 적용 이전과 성능 비교
+|  | Database 직접 조회 | Redis 캐싱 적용 후 | 설명                                                    |
+| --- | --- |---------------|-------------------------------------------------------|
+| HTTP 요청 성공률 | 95% | 100%          | 캐싱 전 일부 요청 실패 → 요청에 대해 100% 성공: 대용량 트래픽에서도 안정적으로 응답   |
+| 평균 응답 시간 | 10.87초 | 0.252초        | 트래픽이 한 번에 몰려 평균 응답 시간이 느렸지만 캐싱 적용 후 안정적으로 0.25 초 만에 응답 |
+| 1초 이내 응답 비율 | 13% | 99%           | 응답 시간 또한 캐싱 처리 후 99% 요청에 대해 1초 이내 처리                  |
+| 실패율 | 4.82% | 0%            | 안정적으로 요청을 처리함으로 요청에 대한 실패율 0%                         |
+| TPS | 385 | 3906          | TPS 성능 1000% 향상 되었음                                   |
 
-    int checkIndex = 0;
-    for(ProductUserNotification productUserNoti : alarmUsers) {
-        // 재고 수량 체크
-        int stockCount = redisRepository.findProductStockCount(product);
-        // 재고 수량이 0이면 더이상 알림 보내지 않음.
-        if(stockCount == 0) {
-            // 품절에 의한 알림 발송 중단 상태 저장
-            redisRepository.saveProductRestockStatus(productUserNoti.getProduct(), RestockAlarmStatusEnum.SOLD_OUT.getStatus());
-
-            // 마지막으로 알림 보낸 사용자 저장
-            redisRepository.saveLastNotificationUser(productUserNoti.getProduct(), productUserNoti.getUser());
-            break;
-        }
-        // 알림 설정 유저에게 알림 send
-
-        // 알림 내용 저장 Redis 에 productId, userId 키로 잡아서 저장
-        redisRepository.saveProductUserNotificationInfo(productUserNoti.getProduct(), productUserNoti.getUser());
-        // 마지막 사용자인 경우
-        if(checkIndex == alarmUsers.size()-1) {
-            // 알림 완료 상태 저장
-            redisRepository.saveProductRestockStatus(productUserNoti.getProduct(), RestockAlarmStatusEnum.COMPLETED.getStatus());
-
-            // 마지막으로 알림 보낸 사용자 저장
-            redisRepository.saveLastNotificationUser(productUserNoti.getProduct(), productUserNoti.getUser());
-        }
-        checkIndex++;
-    }
-}
-```
-#### K6 를 사용한 성능 테스트
-![img.png](images/img.png)
-- 가상 유저수:1, 5번 반복 조건으로 테스트
-- 해당 api 평균 속도는 1.86s 소요
-- 로컬 환경이지만 성능 개선에 대한 고려가 필요해 보임
-### 해결 과정
-- 최초 데이터 조회 후 500번 반복문만 테스트해보니 425ms 소요
-- 500번 반복될 때마다 Redis 에 저장하지 않고 끝난 후 데이터베이스에 저장해야 할 것 같은데, 그렇게 되면 중간에 재고상태가 sold out 이 되었을 때 해당 반복을 멈추게 하는 로직이 필요
-- 과제의 특성상 비동기 방식을 고려하지 않기 때문에 멀티 쓰레드를 이용하여 재고 상태를 체크 고려 &rarr; 병렬 처리를 사용하게 되면 알림 요청의 순서를 완벽히 보장할 수 없음.
-- Spring 의 ApplicationEventPublisher 기능을 활용한 재고 체크 로직 구현
-
-#### 수정 후 코드
-- 알림을 보낼 때마다 매번 재고 수량을 DB 에서 가져오지 않고 재고가 0이 되는 경우 이벤트 처리 
-- Redis 에 알림 사용자 내역 저장을 매번 진행하지 않고 List 에 담아서 한번에 저장
-```java
-@EventListener
-    public void handleStockChangeEvent(StockChangeEvent event) {
-        // 재입고 알림 설정 유저 select
-        List<ProductUserNotification> alarmUsers = productUserNotificationRepository.findAllByProductOrderByIdAsc(event.getProductId());
-        // 알림 발송 후 한 번에 저장하기 위한 배열 변수
-        List<String> userIds = new ArrayList<>();
-
-        int checkIndex = 0;
-        for(ProductUserNotification productUserNoti : alarmUsers) {
-            // 재고가 0일 경우 알림을 중단하는 로직
-            if (event.getNewQuantity() == 0) {
-                // 알림 중단 로직 추가
-                // 품절에 의한 알림 발송 중단 상태 저장
-                redisRepository.saveProductRestockStatus(productUserNoti.getProduct(), RestockAlarmStatusEnum.SOLD_OUT.getStatus());
-
-                // 마지막으로 알림 보낸 사용자 저장
-                redisRepository.saveLastNotificationUser(productUserNoti.getProduct(), productUserNoti.getUser());
-                break;
-            } else {
-                // Redis 에 저장할 값 한번에 저장하기 위한 로직
-                userIds.add(String.valueOf(productUserNoti.getUser().getId()));
-
-                // 마지막 사용자인 경우
-                if(checkIndex == alarmUsers.size()-1) {
-                    // 알림 완료 상태 저장
-                    redisRepository.saveProductRestockStatus(productUserNoti.getProduct(), RestockAlarmStatusEnum.COMPLETED.getStatus());
-
-                    // 마지막으로 알림 보낸 사용자 저장
-                    redisRepository.saveLastNotificationUser(productUserNoti.getProduct(), productUserNoti.getUser());
-                }
-                checkIndex++;
-            }
-        }
-
-        // 알람 사용자가 있고 보낸 사용자가 있으면 Redis 에 값 저장
-        if(!alarmUsers.isEmpty() && !userIds.isEmpty()){
-            System.out.println("alarmUsers.get(0).getProduct().getId() = " + alarmUsers.get(0).getProduct().getId());
-            userIds.forEach(System.out::println);
-            redisRepository.saveProductUserNotificationInfoList(alarmUsers.get(0).getProduct(), userIds);
-        }
-    }
-```
-#### 수정 후 K6 를 사용한 성능 테스트
-![img_2.png](img_2.png)
-- 가상 유저수:1, 5번 반복 조건으로 테스트
-- 500개 알림을 보내는 api 평균 속도 1.04s 소요
-
-### rate limiter 활용한 1초에 500번 알림 제한
-- Resilience4j 사용한 500회 제한
-#### 코드
-```java
-// 1초에 500번만 호출을 허용
-@RateLimiter(name = "sendNotificationLimiter", fallbackMethod = "sendNotificationFallback")
-public void sendAlarm(ProductUserNotification productUserNoti, int checkIndex, List<String> userIds, int lastIdx) {
-    // Redis 에 저장할 값 한번에 저장하기 위한 로직
-    userIds.add(String.valueOf(productUserNoti.getUser().getId()));
-
-    // 마지막 사용자인 경우
-    if(checkIndex == lastIdx) {
-        // 알림 완료 상태 저장
-        redisRepository.saveProductRestockStatus(productUserNoti.getProduct(), RestockAlarmStatusEnum.COMPLETED.getStatus());
-
-        // 마지막으로 알림 보낸 사용자 저장
-        redisRepository.saveLastNotificationUser(productUserNoti.getProduct(), productUserNoti.getUser());
-    }
-}
-
-// Rate limit을 초과했을 때 호출되는 fallback 메서드
-public void sendNotificationFallback(ProductUserNotification productUserNoti, int checkIndex, List<String> userIds, int lastIdx, Throwable throwable) {
-    int retryCount = 0;
-    long backoffTime = 1000; // 초기 대기 시간 1초
-
-    while (retryCount < 3) {
-        retryCount++;
-        try {
-            Thread.sleep(backoffTime); // 지수 백오프 적용
-            sendAlarm(productUserNoti, checkIndex, userIds, lastIdx); // 원래 로직 재실행
-            return; // 성공하면 메서드 종료
-        } catch (Exception e) {
-            System.out.println("Retry attempt " + retryCount + " failed.");
-            backoffTime *= 2; // 대기 시간을 두 배로 늘림
-        }
-    }
-    System.out.println("All retry attempts failed for user: " + productUserNoti.getUser().getId());
-}
-```
+### 동시성 처리
