@@ -33,6 +33,9 @@
 ### 🩻 시스템 아키텍처
 ![img.png](images/systemwhite.png)
 
+### 🏗 ERD
+![img.png](images/ERD.png)
+
 주요 기능 및 기술적 구현
 ---
 
