@@ -22,11 +22,15 @@
 
 ### 🧐 기술 스택에 대한 고민
 
-- [`MSA` 가 꼭 필요할까](https://velog.io/@jnissi92/msa)?
+- [`MSA` 가 꼭 필요할까?](https://velog.io/@jnissi92/msa)
   - `MSA` 는 무엇이고 왜 필요할까?
   - 이번 프로젝트에서 `MSA` 를 도입한 이유는?
-- MSA 환경에서 `도커` 구성하기
-- MSA 각 서비스는 어떻게 서로를 `식별`할까?(feat.Eureka)
+- [MSA 환경에서 `도커` 구성하기](https://velog.io/@jnissi92/MSA-docker-dockercompose)
+  - 각 서비스별로 Dockerfile 관리
+  - DB, Kafka, Application 서비스 별 docker-compose.yml 구성
+- [MSA 각 서비스는 어떻게 서로를 `식별`할까?(feat.Spring Cloud Eureka)](https://velog.io/@jnissi92/MSA-SpringCloudEureka)
+  - Spring Cloud Eureka 란 무엇인가?
+  - Spring Cloud Eureka 는 왜 필요할까?
 - `API Gateway` 도입 후 인증, 인가는 어디서?
 - `Redis` 의 다양한 역할
 - `이벤트 기반` 아키텍처란?(feat.Kafka)
