@@ -34,7 +34,7 @@
 - `API Gateway` 도입 후 인증, 인가는 어디서?
 - `Redis` 의 다양한 역할
 - `이벤트 기반` 아키텍처란?(feat.Kafka)
-- `JPA` 어디까지 깊어지나
+- [`JPA` 어디까지 깊어지나](https://velog.io/@jnissi92/series/JPA)
 
 ### 🩻 시스템 아키텍처
 ![img.png](images/systemwhite.png)
